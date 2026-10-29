@@ -1,0 +1,18 @@
+
+# app build folder
+build
+
+# AI Models folder
+model
+
+# Temporary folder
+tmp
+
+# Local OpenCode config (machine-specific)
+opencode.json
+
+# CMake generated / IDE tooling
+compile_commands.json
+
+#
+AGENTS.md
