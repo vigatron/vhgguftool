@@ -5,21 +5,18 @@
             // "--help",
             // "--version",
 
+            "-model-file", "../models/Qwen3.5-0.8B-bf16.gguf",
+            // "-model-file", "../models/SmolLM2-135M-Instruct-f16.gguf"
+
             // "-model-file", "../models/Qwen2.5-3B-Instruct-Q4_K_M.gguf",
             // "-model-file", "../models/Qwen2.5-coder-3b-instruct-q8_0.gguf"
-
             // "-model-file", "../models/Qwen2.5-7B-Instruct-Q4_K_M.gguf",
             // "-model-file", "../models/Qwen2.5-coder-3b-instruct-q8_0.gguf",
-
             // "-model-file", "../models/Qwen3.5-0.8B-Q8_0.gguf",
-            // "-model-file", "../models/Qwen3.5-0.8B-bf16.gguf",
-
             // "-model-file", "../models/Qwen3.5-4B-Q4_K_M.gguf",
-
             // "-model-file", "../models/Qwen3.5-9B-Q4_K_S.gguf",
-
             // "-model-file", "../models/SmolLM2-135M-Instruct-Q8_0.gguf",
-            "-model-file", "../models/SmolLM2-135M-Instruct-f16.gguf",
+            // "-model-file", "../models/SmolLM2-135M-Instruct-f16.gguf",
 
             //
             "-show-model-info",
@@ -61,7 +58,7 @@
             "-param-tensor-name", "token_embd.weight",
             "-param-tensor-laynum", "0", // Starting layer
             "-param-tensor-laycnt", "1", // All layers
-            "-save-tensor-file", "token_embd.weight_onlyfirst.bin"
+            "-save-tensor-file", "token_embd.weight_0.bin"
 
             // // Command: Extract Tensor
             // "-cmd-extract-tensordata",
