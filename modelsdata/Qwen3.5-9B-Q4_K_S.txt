@@ -1,0 +1,3201 @@
+GGUF version: 3
+Tensors: 427
+Alignment: 32
+Data start: 10968288
+File size: 5394097376
+
+
+*** META-Data Dump ***
+
+KEY: general.architecture TYPE: 8 OFFSET: 24 SIZE: 46 VAL: qwen35
+KEY: general.type TYPE: 8 OFFSET: 70 SIZE: 37 VAL: model
+KEY: general.name TYPE: 8 OFFSET: 107 SIZE: 42 VAL: Qwen3.5-9B
+KEY: general.basename TYPE: 8 OFFSET: 149 SIZE: 46 VAL: Qwen3.5-9B
+KEY: general.quantized_by TYPE: 8 OFFSET: 195 SIZE: 47 VAL: Unsloth
+KEY: general.size_label TYPE: 8 OFFSET: 242 SIZE: 40 VAL: 9B
+KEY: general.license TYPE: 8 OFFSET: 282 SIZE: 45 VAL: apache-2.0
+KEY: general.license.link TYPE: 8 OFFSET: 327 SIZE: 96 VAL: https://huggingface.co/Qwen/Qwen3.5-9B/blob/main/LICENSE
+KEY: general.repo_url TYPE: 8 OFFSET: 423 SIZE: 66 VAL: https://huggingface.co/unsloth
+KEY: general.base_model.count TYPE: 4 OFFSET: 489 SIZE: 40 VAL: 1
+KEY: general.base_model.0.name TYPE: 8 OFFSET: 529 SIZE: 55 VAL: Qwen3.5 9B
+KEY: general.base_model.0.organization TYPE: 8 OFFSET: 584 SIZE: 57 VAL: Qwen
+KEY: general.base_model.0.repo_url TYPE: 8 OFFSET: 641 SIZE: 87 VAL: https://huggingface.co/Qwen/Qwen3.5-9B
+KEY: general.tags TYPE: 9 OFFSET: 728 SIZE: 77 VAL: array<8>[2]
+KEY: qwen35.block_count TYPE: 4 OFFSET: 805 SIZE: 34 VAL: 32
+KEY: qwen35.context_length TYPE: 4 OFFSET: 839 SIZE: 37 VAL: 262144
+KEY: qwen35.embedding_length TYPE: 4 OFFSET: 876 SIZE: 39 VAL: 4096
+KEY: qwen35.feed_forward_length TYPE: 4 OFFSET: 915 SIZE: 42 VAL: 12288
+KEY: qwen35.attention.head_count TYPE: 4 OFFSET: 957 SIZE: 43 VAL: 16
+KEY: qwen35.attention.head_count_kv TYPE: 4 OFFSET: 1000 SIZE: 46 VAL: 4
+KEY: qwen35.rope.dimension_sections TYPE: 9 OFFSET: 1046 SIZE: 70 VAL: array<5>[4]
+KEY: qwen35.rope.freq_base TYPE: 6 OFFSET: 1116 SIZE: 37 VAL: 1e+07
+KEY: qwen35.attention.layer_norm_rms_epsilon TYPE: 6 OFFSET: 1153 SIZE: 55 VAL: 1e-06
+KEY: qwen35.attention.key_length TYPE: 4 OFFSET: 1208 SIZE: 43 VAL: 256
+KEY: qwen35.attention.value_length TYPE: 4 OFFSET: 1251 SIZE: 45 VAL: 256
+KEY: qwen35.ssm.conv_kernel TYPE: 4 OFFSET: 1296 SIZE: 38 VAL: 4
+KEY: qwen35.ssm.state_size TYPE: 4 OFFSET: 1334 SIZE: 37 VAL: 128
+KEY: qwen35.ssm.group_count TYPE: 4 OFFSET: 1371 SIZE: 38 VAL: 16
+KEY: qwen35.ssm.time_step_rank TYPE: 4 OFFSET: 1409 SIZE: 41 VAL: 32
+KEY: qwen35.ssm.inner_size TYPE: 4 OFFSET: 1450 SIZE: 37 VAL: 4096
+KEY: qwen35.full_attention_interval TYPE: 4 OFFSET: 1487 SIZE: 46 VAL: 4
+KEY: qwen35.rope.dimension_count TYPE: 4 OFFSET: 1533 SIZE: 43 VAL: 64
+KEY: tokenizer.ggml.model TYPE: 8 OFFSET: 1576 SIZE: 44 VAL: gpt2
+KEY: tokenizer.ggml.pre TYPE: 8 OFFSET: 1620 SIZE: 44 VAL: qwen35
+KEY: tokenizer.ggml.tokens TYPE: 9 OFFSET: 1664 SIZE: 4853403 VAL: array<8>[248320]
+KEY: tokenizer.ggml.token_type TYPE: 9 OFFSET: 4855067 SIZE: 993329 VAL: array<5>[248320]
+KEY: tokenizer.ggml.merges TYPE: 9 OFFSET: 5848396 SIZE: 5086413 VAL: array<8>[247587]
+KEY: tokenizer.ggml.eos_token_id TYPE: 4 OFFSET: 10934809 SIZE: 43 VAL: 248046
+KEY: tokenizer.ggml.padding_token_id TYPE: 4 OFFSET: 10934852 SIZE: 47 VAL: 248055
+KEY: tokenizer.chat_template TYPE: 8 OFFSET: 10934899 SIZE: 7859 VAL: {%- set image_count = namespace(value=0) %}
+{%- set video_count = namespace(value=0) %}
+{%- macro render_content(content, do_vision_count, is_system_content=false) %}
+    {%- if content is string %}
+        {{- content }}
+    {%- elif content is iterable and content is not mapping %}
+        {%- for item in content %}
+            {%- if 'image' in item or 'image_url' in item or item.type == 'image' %}
+                {%- if is_system_content %}
+                    {{- raise_exception('System message cannot contain images.') }}
+                {%- endif %}
+                {%- if do_vision_count %}
+                    {%- set image_count.value = image_count.value + 1 %}
+                {%- endif %}
+                {%- if add_vision_id %}
+                    {{- 'Picture ' ~ image_count.value ~ ': ' }}
+                {%- endif %}
+                {{- '<|vision_start|><|image_pad|><|vision_end|>' }}
+            {%- elif 'video' in item or item.type == 'video' %}
+                {%- if is_system_content %}
+                    {{- raise_exception('System message cannot contain videos.') }}
+                {%- endif %}
+                {%- if do_vision_count %}
+                    {%- set video_count.value = video_count.value + 1 %}
+                {%- endif %}
+                {%- if add_vision_id %}
+                    {{- 'Video ' ~ video_count.value ~ ': ' }}
+                {%- endif %}
+                {{- '<|vision_start|><|video_pad|><|vision_end|>' }}
+            {%- elif 'text' in item %}
+                {{- item.text }}
+            {%- else %}
+                {{- raise_exception('Unexpected item type in content.') }}
+            {%- endif %}
+        {%- endfor %}
+    {%- elif content is none or content is undefined %}
+        {{- '' }}
+    {%- else %}
+        {{- raise_exception('Unexpected content type.') }}
+    {%- endif %}
+{%- endmacro %}
+{%- if not messages %}
+    {{- raise_exception('No messages provided.') }}
+{%- endif %}
+{%- if tools and tools is iterable and tools is not mapping %}
+    {{- '<|im_start|>system\n' }}
+    {{- "# Tools\n\nYou have access to the following functions:\n\n<tools>" }}
+    {%- for tool in tools %}
+        {{- "\n" }}
+        {{- tool | tojson }}
+    {%- endfor %}
+    {{- "\n</tools>" }}
+    {{- '\n\nIf you choose to call a function ONLY reply in the following format with NO suffix:\n\n<tool_call>\n<function=example_function_name>\n<parameter=example_parameter_1>\nvalue_1\n</parameter>\n<parameter=example_parameter_2>\nThis is the value for the second parameter\nthat can span\nmultiple lines\n</parameter>\n</function>\n</tool_call>\n\n<IMPORTANT>\nReminder:\n- Function calls MUST follow the specified format: an inner <function=...></function> block must be nested within <tool_call></tool_call> XML tags\n- Required parameters MUST be specified\n- You may provide optional reasoning for your function call in natural language BEFORE the function call, but NOT after\n- If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls\n</IMPORTANT>' }}
+    {%- if messages[0].role == 'system' %}
+        {%- set content = render_content(messages[0].content, false, true)|trim %}
+        {%- if content %}
+            {{- '\n\n' + content }}
+        {%- endif %}
+    {%- endif %}
+    {{- '<|im_end|>\n' }}
+{%- else %}
+    {%- if messages[0].role == 'system' %}
+        {%- set content = render_content(messages[0].content, false, true)|trim %}
+        {{- '<|im_start|>system\n' + content + '<|im_end|>\n' }}
+    {%- endif %}
+{%- endif %}
+{%- set ns = namespace(multi_step_tool=true, last_query_index=messages|length - 1) %}
+{%- for message in messages[::-1] %}
+    {%- set index = (messages|length - 1) - loop.index0 %}
+    {%- if ns.multi_step_tool and message.role == "user" %}
+        {%- set content = render_content(message.content, false)|trim %}
+        {%- if not(content.startswith('<tool_response>') and content.endswith('</tool_response>')) %}
+            {%- set ns.multi_step_tool = false %}
+            {%- set ns.last_query_index = index %}
+        {%- endif %}
+    {%- endif %}
+{%- endfor %}
+{%- if ns.multi_step_tool %}
+    {{- raise_exception('No user query found in messages.') }}
+{%- endif %}
+{%- for message in messages %}
+    {%- set content = render_content(message.content, true)|trim %}
+    {%- if message.role == "system" %}
+        {%- if not loop.first %}
+            {{- raise_exception('System message must be at the beginning.') }}
+        {%- endif %}
+    {%- elif message.role == "user" %}
+        {{- '<|im_start|>' + message.role + '\n' + content + '<|im_end|>' + '\n' }}
+    {%- elif message.role == "assistant" %}
+        {%- set reasoning_content = '' %}
+        {%- if message.reasoning_content is string %}
+            {%- set reasoning_content = message.reasoning_content %}
+        {%- else %}
+            {%- if '</think>' in content %}
+                {%- set reasoning_content = content.split('</think>')[0].rstrip('\n').split('<think>')[-1].lstrip('\n') %}
+                {%- set content = content.split('</think>')[-1].lstrip('\n') %}
+            {%- endif %}
+        {%- endif %}
+        {%- set reasoning_content = reasoning_content|trim %}
+        {%- if loop.index0 > ns.last_query_index %}
+            {{- '<|im_start|>' + message.role + '\n<think>\n' + reasoning_content + '\n</think>\n\n' + content }}
+        {%- else %}
+            {{- '<|im_start|>' + message.role + '\n' + content }}
+        {%- endif %}
+        {%- if message.tool_calls and message.tool_calls is iterable and message.tool_calls is not mapping %}
+            {%- for tool_call in message.tool_calls %}
+                {%- if tool_call.function is defined %}
+                    {%- set tool_call = tool_call.function %}
+                {%- endif %}
+                {%- if loop.first %}
+                    {%- if content|trim %}
+                        {{- '\n\n<tool_call>\n<function=' + tool_call.name + '>\n' }}
+                    {%- else %}
+                        {{- '<tool_call>\n<function=' + tool_call.name + '>\n' }}
+                    {%- endif %}
+                {%- else %}
+                    {{- '\n<tool_call>\n<function=' + tool_call.name + '>\n' }}
+                {%- endif %}
+                {%- if tool_call.arguments is mapping %}
+                    {%- for args_name in tool_call.arguments %}
+                        {%- set args_value = tool_call.arguments[args_name] %}
+                        {{- '<parameter=' + args_name + '>\n' }}
+                        {%- set args_value = args_value | tojson | safe if args_value is mapping or (args_value is sequence and args_value is not string) else args_value | string %}
+                        {{- args_value }}
+                        {{- '\n</parameter>\n' }}
+                    {%- endfor %}
+                {%- endif %}
+                {{- '</function>\n</tool_call>' }}
+            {%- endfor %}
+        {%- endif %}
+        {{- '<|im_end|>\n' }}
+    {%- elif message.role == "tool" %}
+        {%- if loop.previtem and loop.previtem.role != "tool" %}
+            {{- '<|im_start|>user' }}
+        {%- endif %}
+        {{- '\n<tool_response>\n' }}
+        {{- content }}
+        {{- '\n</tool_response>' }}
+        {%- if not loop.last and loop.nextitem.role != "tool" %}
+            {{- '<|im_end|>\n' }}
+        {%- elif loop.last %}
+            {{- '<|im_end|>\n' }}
+        {%- endif %}
+    {%- else %}
+        {{- raise_exception('Unexpected message role.') }}
+    {%- endif %}
+{%- endfor %}
+{%- if add_generation_prompt %}
+    {{- '<|im_start|>assistant\n' }}
+    {%- if enable_thinking is defined and enable_thinking is true %}
+        {{- '<think>\n' }}
+    {%- else %}
+        {{- '<think>\n\n</think>\n\n' }}
+    {%- endif %}
+{%- endif %}
+KEY: general.quantization_version TYPE: 4 OFFSET: 10942758 SIZE: 44 VAL: 2
+KEY: general.file_type TYPE: 4 OFFSET: 10942802 SIZE: 33 VAL: 14
+KEY: quantize.imatrix.file TYPE: 8 OFFSET: 10942835 SIZE: 77 VAL: Qwen3.5-9B-GGUF/imatrix_unsloth.gguf
+KEY: quantize.imatrix.dataset TYPE: 8 OFFSET: 10942912 SIZE: 78 VAL: unsloth_calibration_Qwen3.5-9B.txt
+KEY: quantize.imatrix.entries_count TYPE: 4 OFFSET: 10942990 SIZE: 46 VAL: 248
+KEY: quantize.imatrix.chunks_count TYPE: 4 OFFSET: 10943036 SIZE: 45 VAL: 80
+
+*** Tensors Info Table ***
+
+
+output.weight
+  shape=[4096, 248320] 
+  ggml_type=14
+  tensor_offset=0
+  file_offset=10968288 xa75ce0
+  block_size=834355200
+
+output_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=834355200
+  file_offset=845323488 x32629ce0
+  block_size=16384
+
+token_embd.weight
+  shape=[4096, 248320] 
+  ggml_type=12
+  tensor_offset=834371584
+  file_offset=845339872 x3262dce0
+  block_size=572129280
+
+blk.0.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=1406500864
+  file_offset=1417469152 x547cdce0
+  block_size=9437184
+
+blk.0.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=1415938048
+  file_offset=1426906336 x550cdce0
+  block_size=16384
+
+blk.0.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=1415954432
+  file_offset=1426922720 x550d1ce0
+  block_size=18874368
+
+blk.0.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=13
+  tensor_offset=1434828800
+  file_offset=1445797088 x562d1ce0
+  block_size=34603008
+
+blk.0.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=1469431808
+  file_offset=1480400096 x583d1ce0
+  block_size=28311552
+
+blk.0.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=1497743360
+  file_offset=1508711648 x59ed1ce0
+  block_size=28311552
+
+blk.0.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=1526054912
+  file_offset=1537023200 x5b9d1ce0
+  block_size=16384
+
+blk.0.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=1526071296
+  file_offset=1537039584 x5b9d5ce0
+  block_size=128
+
+blk.0.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=1526071424
+  file_offset=1537039712 x5b9d5d60
+  block_size=139264
+
+blk.0.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=1526210688
+  file_offset=1537178976 x5b9f7d60
+  block_size=139264
+
+blk.0.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=1526349952
+  file_offset=1537318240 x5ba19d60
+  block_size=131072
+
+blk.0.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=1526481024
+  file_offset=1537449312 x5ba39d60
+  block_size=128
+
+blk.0.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=1526481152
+  file_offset=1537449440 x5ba39de0
+  block_size=512
+
+blk.0.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=1526481664
+  file_offset=1537449952 x5ba39fe0
+  block_size=11534336
+
+blk.1.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=1538016000
+  file_offset=1548984288 x5c539fe0
+  block_size=9437184
+
+blk.1.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=1547453184
+  file_offset=1558421472 x5ce39fe0
+  block_size=16384
+
+blk.1.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=1547469568
+  file_offset=1558437856 x5ce3dfe0
+  block_size=18874368
+
+blk.1.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=13
+  tensor_offset=1566343936
+  file_offset=1577312224 x5e03dfe0
+  block_size=34603008
+
+blk.1.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=1600946944
+  file_offset=1611915232 x6013dfe0
+  block_size=28311552
+
+blk.1.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=1629258496
+  file_offset=1640226784 x61c3dfe0
+  block_size=28311552
+
+blk.1.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=1657570048
+  file_offset=1668538336 x6373dfe0
+  block_size=16384
+
+blk.1.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=1657586432
+  file_offset=1668554720 x63741fe0
+  block_size=128
+
+blk.1.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=1657586560
+  file_offset=1668554848 x63742060
+  block_size=139264
+
+blk.1.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=1657725824
+  file_offset=1668694112 x63764060
+  block_size=139264
+
+blk.1.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=1657865088
+  file_offset=1668833376 x63786060
+  block_size=131072
+
+blk.1.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=1657996160
+  file_offset=1668964448 x637a6060
+  block_size=128
+
+blk.1.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=1657996288
+  file_offset=1668964576 x637a60e0
+  block_size=512
+
+blk.1.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=1657996800
+  file_offset=1668965088 x637a62e0
+  block_size=11534336
+
+blk.2.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=1669531136
+  file_offset=1680499424 x642a62e0
+  block_size=9437184
+
+blk.2.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=1678968320
+  file_offset=1689936608 x64ba62e0
+  block_size=16384
+
+blk.2.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=1678984704
+  file_offset=1689952992 x64baa2e0
+  block_size=18874368
+
+blk.2.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=13
+  tensor_offset=1697859072
+  file_offset=1708827360 x65daa2e0
+  block_size=34603008
+
+blk.2.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=1732462080
+  file_offset=1743430368 x67eaa2e0
+  block_size=28311552
+
+blk.2.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=1760773632
+  file_offset=1771741920 x699aa2e0
+  block_size=28311552
+
+blk.2.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=1789085184
+  file_offset=1800053472 x6b4aa2e0
+  block_size=16384
+
+blk.2.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=1789101568
+  file_offset=1800069856 x6b4ae2e0
+  block_size=128
+
+blk.2.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=1789101696
+  file_offset=1800069984 x6b4ae360
+  block_size=139264
+
+blk.2.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=1789240960
+  file_offset=1800209248 x6b4d0360
+  block_size=139264
+
+blk.2.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=1789380224
+  file_offset=1800348512 x6b4f2360
+  block_size=131072
+
+blk.2.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=1789511296
+  file_offset=1800479584 x6b512360
+  block_size=128
+
+blk.2.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=1789511424
+  file_offset=1800479712 x6b5123e0
+  block_size=512
+
+blk.2.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=1789511936
+  file_offset=1800480224 x6b5125e0
+  block_size=11534336
+
+blk.3.attn_k.weight
+  shape=[4096, 1024] 
+  ggml_type=12
+  tensor_offset=1801046272
+  file_offset=1812014560 x6c0125e0
+  block_size=2359296
+
+blk.3.attn_k_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=1803405568
+  file_offset=1814373856 x6c2525e0
+  block_size=1024
+
+blk.3.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=1803406592
+  file_offset=1814374880 x6c2529e0
+  block_size=16384
+
+blk.3.attn_output.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=1803422976
+  file_offset=1814391264 x6c2569e0
+  block_size=9437184
+
+blk.3.attn_q.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=1812860160
+  file_offset=1823828448 x6cb569e0
+  block_size=18874368
+
+blk.3.attn_q_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=1831734528
+  file_offset=1842702816 x6dd569e0
+  block_size=1024
+
+blk.3.attn_v.weight
+  shape=[4096, 1024] 
+  ggml_type=13
+  tensor_offset=1831735552
+  file_offset=1842703840 x6dd56de0
+  block_size=2883584
+
+blk.3.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=13
+  tensor_offset=1834619136
+  file_offset=1845587424 x6e016de0
+  block_size=34603008
+
+blk.3.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=1869222144
+  file_offset=1880190432 x70116de0
+  block_size=28311552
+
+blk.3.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=1897533696
+  file_offset=1908501984 x71c16de0
+  block_size=28311552
+
+blk.3.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=1925845248
+  file_offset=1936813536 x73716de0
+  block_size=16384
+
+blk.4.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=1925861632
+  file_offset=1936829920 x7371ade0
+  block_size=9437184
+
+blk.4.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=1935298816
+  file_offset=1946267104 x7401ade0
+  block_size=16384
+
+blk.4.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=1935315200
+  file_offset=1946283488 x7401ede0
+  block_size=18874368
+
+blk.4.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=1954189568
+  file_offset=1965157856 x7521ede0
+  block_size=28311552
+
+blk.4.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=1982501120
+  file_offset=1993469408 x76d1ede0
+  block_size=28311552
+
+blk.4.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2010812672
+  file_offset=2021780960 x7881ede0
+  block_size=28311552
+
+blk.4.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2039124224
+  file_offset=2050092512 x7a31ede0
+  block_size=16384
+
+blk.4.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=2039140608
+  file_offset=2050108896 x7a322de0
+  block_size=128
+
+blk.4.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=2039140736
+  file_offset=2050109024 x7a322e60
+  block_size=139264
+
+blk.4.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=2039280000
+  file_offset=2050248288 x7a344e60
+  block_size=139264
+
+blk.4.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=2039419264
+  file_offset=2050387552 x7a366e60
+  block_size=131072
+
+blk.4.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=2039550336
+  file_offset=2050518624 x7a386e60
+  block_size=128
+
+blk.4.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=2039550464
+  file_offset=2050518752 x7a386ee0
+  block_size=512
+
+blk.4.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=2039550976
+  file_offset=2050519264 x7a3870e0
+  block_size=11534336
+
+blk.5.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=2051085312
+  file_offset=2062053600 x7ae870e0
+  block_size=9437184
+
+blk.5.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2060522496
+  file_offset=2071490784 x7b7870e0
+  block_size=16384
+
+blk.5.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=2060538880
+  file_offset=2071507168 x7b78b0e0
+  block_size=18874368
+
+blk.5.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=2079413248
+  file_offset=2090381536 x7c98b0e0
+  block_size=28311552
+
+blk.5.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2107724800
+  file_offset=2118693088 x7e48b0e0
+  block_size=28311552
+
+blk.5.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2136036352
+  file_offset=2147004640 x7ff8b0e0
+  block_size=28311552
+
+blk.5.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2164347904
+  file_offset=2175316192 x81a8b0e0
+  block_size=16384
+
+blk.5.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=2164364288
+  file_offset=2175332576 x81a8f0e0
+  block_size=128
+
+blk.5.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=2164364416
+  file_offset=2175332704 x81a8f160
+  block_size=139264
+
+blk.5.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=2164503680
+  file_offset=2175471968 x81ab1160
+  block_size=139264
+
+blk.5.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=2164642944
+  file_offset=2175611232 x81ad3160
+  block_size=131072
+
+blk.5.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=2164774016
+  file_offset=2175742304 x81af3160
+  block_size=128
+
+blk.5.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=2164774144
+  file_offset=2175742432 x81af31e0
+  block_size=512
+
+blk.5.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=2164774656
+  file_offset=2175742944 x81af33e0
+  block_size=11534336
+
+blk.6.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=2176308992
+  file_offset=2187277280 x825f33e0
+  block_size=9437184
+
+blk.6.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2185746176
+  file_offset=2196714464 x82ef33e0
+  block_size=16384
+
+blk.6.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=2185762560
+  file_offset=2196730848 x82ef73e0
+  block_size=18874368
+
+blk.6.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=2204636928
+  file_offset=2215605216 x840f73e0
+  block_size=28311552
+
+blk.6.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2232948480
+  file_offset=2243916768 x85bf73e0
+  block_size=28311552
+
+blk.6.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2261260032
+  file_offset=2272228320 x876f73e0
+  block_size=28311552
+
+blk.6.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2289571584
+  file_offset=2300539872 x891f73e0
+  block_size=16384
+
+blk.6.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=2289587968
+  file_offset=2300556256 x891fb3e0
+  block_size=128
+
+blk.6.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=2289588096
+  file_offset=2300556384 x891fb460
+  block_size=139264
+
+blk.6.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=2289727360
+  file_offset=2300695648 x8921d460
+  block_size=139264
+
+blk.6.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=2289866624
+  file_offset=2300834912 x8923f460
+  block_size=131072
+
+blk.6.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=2289997696
+  file_offset=2300965984 x8925f460
+  block_size=128
+
+blk.6.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=2289997824
+  file_offset=2300966112 x8925f4e0
+  block_size=512
+
+blk.6.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=2289998336
+  file_offset=2300966624 x8925f6e0
+  block_size=11534336
+
+blk.7.attn_k.weight
+  shape=[4096, 1024] 
+  ggml_type=12
+  tensor_offset=2301532672
+  file_offset=2312500960 x89d5f6e0
+  block_size=2359296
+
+blk.7.attn_k_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=2303891968
+  file_offset=2314860256 x89f9f6e0
+  block_size=1024
+
+blk.7.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2303892992
+  file_offset=2314861280 x89f9fae0
+  block_size=16384
+
+blk.7.attn_output.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=2303909376
+  file_offset=2314877664 x89fa3ae0
+  block_size=9437184
+
+blk.7.attn_q.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=2313346560
+  file_offset=2324314848 x8a8a3ae0
+  block_size=18874368
+
+blk.7.attn_q_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=2332220928
+  file_offset=2343189216 x8baa3ae0
+  block_size=1024
+
+blk.7.attn_v.weight
+  shape=[4096, 1024] 
+  ggml_type=13
+  tensor_offset=2332221952
+  file_offset=2343190240 x8baa3ee0
+  block_size=2883584
+
+blk.7.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=2335105536
+  file_offset=2346073824 x8bd63ee0
+  block_size=28311552
+
+blk.7.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2363417088
+  file_offset=2374385376 x8d863ee0
+  block_size=28311552
+
+blk.7.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2391728640
+  file_offset=2402696928 x8f363ee0
+  block_size=28311552
+
+blk.7.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2420040192
+  file_offset=2431008480 x90e63ee0
+  block_size=16384
+
+blk.8.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=2420056576
+  file_offset=2431024864 x90e67ee0
+  block_size=9437184
+
+blk.8.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2429493760
+  file_offset=2440462048 x91767ee0
+  block_size=16384
+
+blk.8.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=2429510144
+  file_offset=2440478432 x9176bee0
+  block_size=18874368
+
+blk.8.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=2448384512
+  file_offset=2459352800 x9296bee0
+  block_size=28311552
+
+blk.8.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2476696064
+  file_offset=2487664352 x9446bee0
+  block_size=28311552
+
+blk.8.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2505007616
+  file_offset=2515975904 x95f6bee0
+  block_size=28311552
+
+blk.8.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2533319168
+  file_offset=2544287456 x97a6bee0
+  block_size=16384
+
+blk.8.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=2533335552
+  file_offset=2544303840 x97a6fee0
+  block_size=128
+
+blk.8.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=2533335680
+  file_offset=2544303968 x97a6ff60
+  block_size=139264
+
+blk.8.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=2533474944
+  file_offset=2544443232 x97a91f60
+  block_size=139264
+
+blk.8.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=2533614208
+  file_offset=2544582496 x97ab3f60
+  block_size=131072
+
+blk.8.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=2533745280
+  file_offset=2544713568 x97ad3f60
+  block_size=128
+
+blk.8.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=2533745408
+  file_offset=2544713696 x97ad3fe0
+  block_size=512
+
+blk.8.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=2533745920
+  file_offset=2544714208 x97ad41e0
+  block_size=11534336
+
+blk.9.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=2545280256
+  file_offset=2556248544 x985d41e0
+  block_size=9437184
+
+blk.9.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2554717440
+  file_offset=2565685728 x98ed41e0
+  block_size=16384
+
+blk.9.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=2554733824
+  file_offset=2565702112 x98ed81e0
+  block_size=18874368
+
+blk.9.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=2573608192
+  file_offset=2584576480 x9a0d81e0
+  block_size=28311552
+
+blk.9.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2601919744
+  file_offset=2612888032 x9bbd81e0
+  block_size=28311552
+
+blk.9.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2630231296
+  file_offset=2641199584 x9d6d81e0
+  block_size=28311552
+
+blk.9.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2658542848
+  file_offset=2669511136 x9f1d81e0
+  block_size=16384
+
+blk.9.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=2658559232
+  file_offset=2669527520 x9f1dc1e0
+  block_size=128
+
+blk.9.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=2658559360
+  file_offset=2669527648 x9f1dc260
+  block_size=139264
+
+blk.9.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=2658698624
+  file_offset=2669666912 x9f1fe260
+  block_size=139264
+
+blk.9.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=2658837888
+  file_offset=2669806176 x9f220260
+  block_size=131072
+
+blk.9.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=2658968960
+  file_offset=2669937248 x9f240260
+  block_size=128
+
+blk.9.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=2658969088
+  file_offset=2669937376 x9f2402e0
+  block_size=512
+
+blk.9.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=2658969600
+  file_offset=2669937888 x9f2404e0
+  block_size=11534336
+
+blk.10.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=2670503936
+  file_offset=2681472224 x9fd404e0
+  block_size=9437184
+
+blk.10.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2679941120
+  file_offset=2690909408 xa06404e0
+  block_size=16384
+
+blk.10.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=2679957504
+  file_offset=2690925792 xa06444e0
+  block_size=18874368
+
+blk.10.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=2698831872
+  file_offset=2709800160 xa18444e0
+  block_size=28311552
+
+blk.10.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2727143424
+  file_offset=2738111712 xa33444e0
+  block_size=28311552
+
+blk.10.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2755454976
+  file_offset=2766423264 xa4e444e0
+  block_size=28311552
+
+blk.10.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2783766528
+  file_offset=2794734816 xa69444e0
+  block_size=16384
+
+blk.10.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=2783782912
+  file_offset=2794751200 xa69484e0
+  block_size=128
+
+blk.10.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=2783783040
+  file_offset=2794751328 xa6948560
+  block_size=139264
+
+blk.10.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=2783922304
+  file_offset=2794890592 xa696a560
+  block_size=139264
+
+blk.10.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=2784061568
+  file_offset=2795029856 xa698c560
+  block_size=131072
+
+blk.10.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=2784192640
+  file_offset=2795160928 xa69ac560
+  block_size=128
+
+blk.10.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=2784192768
+  file_offset=2795161056 xa69ac5e0
+  block_size=512
+
+blk.10.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=2784193280
+  file_offset=2795161568 xa69ac7e0
+  block_size=11534336
+
+blk.11.attn_k.weight
+  shape=[4096, 1024] 
+  ggml_type=12
+  tensor_offset=2795727616
+  file_offset=2806695904 xa74ac7e0
+  block_size=2359296
+
+blk.11.attn_k_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=2798086912
+  file_offset=2809055200 xa76ec7e0
+  block_size=1024
+
+blk.11.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2798087936
+  file_offset=2809056224 xa76ecbe0
+  block_size=16384
+
+blk.11.attn_output.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=2798104320
+  file_offset=2809072608 xa76f0be0
+  block_size=9437184
+
+blk.11.attn_q.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=2807541504
+  file_offset=2818509792 xa7ff0be0
+  block_size=18874368
+
+blk.11.attn_q_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=2826415872
+  file_offset=2837384160 xa91f0be0
+  block_size=1024
+
+blk.11.attn_v.weight
+  shape=[4096, 1024] 
+  ggml_type=13
+  tensor_offset=2826416896
+  file_offset=2837385184 xa91f0fe0
+  block_size=2883584
+
+blk.11.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=2829300480
+  file_offset=2840268768 xa94b0fe0
+  block_size=28311552
+
+blk.11.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2857612032
+  file_offset=2868580320 xaafb0fe0
+  block_size=28311552
+
+blk.11.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2885923584
+  file_offset=2896891872 xacab0fe0
+  block_size=28311552
+
+blk.11.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2914235136
+  file_offset=2925203424 xae5b0fe0
+  block_size=16384
+
+blk.12.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=2914251520
+  file_offset=2925219808 xae5b4fe0
+  block_size=9437184
+
+blk.12.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=2923688704
+  file_offset=2934656992 xaeeb4fe0
+  block_size=16384
+
+blk.12.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=2923705088
+  file_offset=2934673376 xaeeb8fe0
+  block_size=18874368
+
+blk.12.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=2942579456
+  file_offset=2953547744 xb00b8fe0
+  block_size=28311552
+
+blk.12.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2970891008
+  file_offset=2981859296 xb1bb8fe0
+  block_size=28311552
+
+blk.12.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=2999202560
+  file_offset=3010170848 xb36b8fe0
+  block_size=28311552
+
+blk.12.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3027514112
+  file_offset=3038482400 xb51b8fe0
+  block_size=16384
+
+blk.12.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=3027530496
+  file_offset=3038498784 xb51bcfe0
+  block_size=128
+
+blk.12.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=3027530624
+  file_offset=3038498912 xb51bd060
+  block_size=139264
+
+blk.12.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=3027669888
+  file_offset=3038638176 xb51df060
+  block_size=139264
+
+blk.12.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=3027809152
+  file_offset=3038777440 xb5201060
+  block_size=131072
+
+blk.12.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=3027940224
+  file_offset=3038908512 xb5221060
+  block_size=128
+
+blk.12.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=3027940352
+  file_offset=3038908640 xb52210e0
+  block_size=512
+
+blk.12.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=3027940864
+  file_offset=3038909152 xb52212e0
+  block_size=11534336
+
+blk.13.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=3039475200
+  file_offset=3050443488 xb5d212e0
+  block_size=9437184
+
+blk.13.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3048912384
+  file_offset=3059880672 xb66212e0
+  block_size=16384
+
+blk.13.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=3048928768
+  file_offset=3059897056 xb66252e0
+  block_size=18874368
+
+blk.13.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=3067803136
+  file_offset=3078771424 xb78252e0
+  block_size=28311552
+
+blk.13.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3096114688
+  file_offset=3107082976 xb93252e0
+  block_size=28311552
+
+blk.13.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3124426240
+  file_offset=3135394528 xbae252e0
+  block_size=28311552
+
+blk.13.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3152737792
+  file_offset=3163706080 xbc9252e0
+  block_size=16384
+
+blk.13.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=3152754176
+  file_offset=3163722464 xbc9292e0
+  block_size=128
+
+blk.13.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=3152754304
+  file_offset=3163722592 xbc929360
+  block_size=139264
+
+blk.13.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=3152893568
+  file_offset=3163861856 xbc94b360
+  block_size=139264
+
+blk.13.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=3153032832
+  file_offset=3164001120 xbc96d360
+  block_size=131072
+
+blk.13.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=3153163904
+  file_offset=3164132192 xbc98d360
+  block_size=128
+
+blk.13.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=3153164032
+  file_offset=3164132320 xbc98d3e0
+  block_size=512
+
+blk.13.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=3153164544
+  file_offset=3164132832 xbc98d5e0
+  block_size=11534336
+
+blk.14.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=3164698880
+  file_offset=3175667168 xbd48d5e0
+  block_size=9437184
+
+blk.14.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3174136064
+  file_offset=3185104352 xbdd8d5e0
+  block_size=16384
+
+blk.14.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=3174152448
+  file_offset=3185120736 xbdd915e0
+  block_size=18874368
+
+blk.14.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=3193026816
+  file_offset=3203995104 xbef915e0
+  block_size=28311552
+
+blk.14.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3221338368
+  file_offset=3232306656 xc0a915e0
+  block_size=28311552
+
+blk.14.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3249649920
+  file_offset=3260618208 xc25915e0
+  block_size=28311552
+
+blk.14.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3277961472
+  file_offset=3288929760 xc40915e0
+  block_size=16384
+
+blk.14.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=3277977856
+  file_offset=3288946144 xc40955e0
+  block_size=128
+
+blk.14.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=3277977984
+  file_offset=3288946272 xc4095660
+  block_size=139264
+
+blk.14.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=3278117248
+  file_offset=3289085536 xc40b7660
+  block_size=139264
+
+blk.14.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=3278256512
+  file_offset=3289224800 xc40d9660
+  block_size=131072
+
+blk.14.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=3278387584
+  file_offset=3289355872 xc40f9660
+  block_size=128
+
+blk.14.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=3278387712
+  file_offset=3289356000 xc40f96e0
+  block_size=512
+
+blk.14.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=3278388224
+  file_offset=3289356512 xc40f98e0
+  block_size=11534336
+
+blk.15.attn_k.weight
+  shape=[4096, 1024] 
+  ggml_type=12
+  tensor_offset=3289922560
+  file_offset=3300890848 xc4bf98e0
+  block_size=2359296
+
+blk.15.attn_k_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=3292281856
+  file_offset=3303250144 xc4e398e0
+  block_size=1024
+
+blk.15.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3292282880
+  file_offset=3303251168 xc4e39ce0
+  block_size=16384
+
+blk.15.attn_output.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=3292299264
+  file_offset=3303267552 xc4e3dce0
+  block_size=9437184
+
+blk.15.attn_q.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=3301736448
+  file_offset=3312704736 xc573dce0
+  block_size=18874368
+
+blk.15.attn_q_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=3320610816
+  file_offset=3331579104 xc693dce0
+  block_size=1024
+
+blk.15.attn_v.weight
+  shape=[4096, 1024] 
+  ggml_type=13
+  tensor_offset=3320611840
+  file_offset=3331580128 xc693e0e0
+  block_size=2883584
+
+blk.15.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=3323495424
+  file_offset=3334463712 xc6bfe0e0
+  block_size=28311552
+
+blk.15.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3351806976
+  file_offset=3362775264 xc86fe0e0
+  block_size=28311552
+
+blk.15.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3380118528
+  file_offset=3391086816 xca1fe0e0
+  block_size=28311552
+
+blk.15.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3408430080
+  file_offset=3419398368 xcbcfe0e0
+  block_size=16384
+
+blk.16.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=3408446464
+  file_offset=3419414752 xcbd020e0
+  block_size=9437184
+
+blk.16.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3417883648
+  file_offset=3428851936 xcc6020e0
+  block_size=16384
+
+blk.16.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=3417900032
+  file_offset=3428868320 xcc6060e0
+  block_size=18874368
+
+blk.16.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=3436774400
+  file_offset=3447742688 xcd8060e0
+  block_size=28311552
+
+blk.16.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3465085952
+  file_offset=3476054240 xcf3060e0
+  block_size=28311552
+
+blk.16.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3493397504
+  file_offset=3504365792 xd0e060e0
+  block_size=28311552
+
+blk.16.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3521709056
+  file_offset=3532677344 xd29060e0
+  block_size=16384
+
+blk.16.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=3521725440
+  file_offset=3532693728 xd290a0e0
+  block_size=128
+
+blk.16.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=3521725568
+  file_offset=3532693856 xd290a160
+  block_size=139264
+
+blk.16.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=3521864832
+  file_offset=3532833120 xd292c160
+  block_size=139264
+
+blk.16.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=3522004096
+  file_offset=3532972384 xd294e160
+  block_size=131072
+
+blk.16.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=3522135168
+  file_offset=3533103456 xd296e160
+  block_size=128
+
+blk.16.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=3522135296
+  file_offset=3533103584 xd296e1e0
+  block_size=512
+
+blk.16.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=3522135808
+  file_offset=3533104096 xd296e3e0
+  block_size=11534336
+
+blk.17.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=3533670144
+  file_offset=3544638432 xd346e3e0
+  block_size=9437184
+
+blk.17.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3543107328
+  file_offset=3554075616 xd3d6e3e0
+  block_size=16384
+
+blk.17.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=3543123712
+  file_offset=3554092000 xd3d723e0
+  block_size=18874368
+
+blk.17.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=3561998080
+  file_offset=3572966368 xd4f723e0
+  block_size=28311552
+
+blk.17.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3590309632
+  file_offset=3601277920 xd6a723e0
+  block_size=28311552
+
+blk.17.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3618621184
+  file_offset=3629589472 xd85723e0
+  block_size=28311552
+
+blk.17.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3646932736
+  file_offset=3657901024 xda0723e0
+  block_size=16384
+
+blk.17.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=3646949120
+  file_offset=3657917408 xda0763e0
+  block_size=128
+
+blk.17.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=3646949248
+  file_offset=3657917536 xda076460
+  block_size=139264
+
+blk.17.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=3647088512
+  file_offset=3658056800 xda098460
+  block_size=139264
+
+blk.17.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=3647227776
+  file_offset=3658196064 xda0ba460
+  block_size=131072
+
+blk.17.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=3647358848
+  file_offset=3658327136 xda0da460
+  block_size=128
+
+blk.17.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=3647358976
+  file_offset=3658327264 xda0da4e0
+  block_size=512
+
+blk.17.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=3647359488
+  file_offset=3658327776 xda0da6e0
+  block_size=11534336
+
+blk.18.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=3658893824
+  file_offset=3669862112 xdabda6e0
+  block_size=9437184
+
+blk.18.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3668331008
+  file_offset=3679299296 xdb4da6e0
+  block_size=16384
+
+blk.18.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=3668347392
+  file_offset=3679315680 xdb4de6e0
+  block_size=18874368
+
+blk.18.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=3687221760
+  file_offset=3698190048 xdc6de6e0
+  block_size=28311552
+
+blk.18.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3715533312
+  file_offset=3726501600 xde1de6e0
+  block_size=28311552
+
+blk.18.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3743844864
+  file_offset=3754813152 xdfcde6e0
+  block_size=28311552
+
+blk.18.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3772156416
+  file_offset=3783124704 xe17de6e0
+  block_size=16384
+
+blk.18.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=3772172800
+  file_offset=3783141088 xe17e26e0
+  block_size=128
+
+blk.18.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=3772172928
+  file_offset=3783141216 xe17e2760
+  block_size=139264
+
+blk.18.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=3772312192
+  file_offset=3783280480 xe1804760
+  block_size=139264
+
+blk.18.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=3772451456
+  file_offset=3783419744 xe1826760
+  block_size=131072
+
+blk.18.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=3772582528
+  file_offset=3783550816 xe1846760
+  block_size=128
+
+blk.18.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=3772582656
+  file_offset=3783550944 xe18467e0
+  block_size=512
+
+blk.18.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=3772583168
+  file_offset=3783551456 xe18469e0
+  block_size=11534336
+
+blk.19.attn_k.weight
+  shape=[4096, 1024] 
+  ggml_type=12
+  tensor_offset=3784117504
+  file_offset=3795085792 xe23469e0
+  block_size=2359296
+
+blk.19.attn_k_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=3786476800
+  file_offset=3797445088 xe25869e0
+  block_size=1024
+
+blk.19.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3786477824
+  file_offset=3797446112 xe2586de0
+  block_size=16384
+
+blk.19.attn_output.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=3786494208
+  file_offset=3797462496 xe258ade0
+  block_size=9437184
+
+blk.19.attn_q.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=3795931392
+  file_offset=3806899680 xe2e8ade0
+  block_size=18874368
+
+blk.19.attn_q_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=3814805760
+  file_offset=3825774048 xe408ade0
+  block_size=1024
+
+blk.19.attn_v.weight
+  shape=[4096, 1024] 
+  ggml_type=12
+  tensor_offset=3814806784
+  file_offset=3825775072 xe408b1e0
+  block_size=2359296
+
+blk.19.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=3817166080
+  file_offset=3828134368 xe42cb1e0
+  block_size=28311552
+
+blk.19.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3845477632
+  file_offset=3856445920 xe5dcb1e0
+  block_size=28311552
+
+blk.19.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3873789184
+  file_offset=3884757472 xe78cb1e0
+  block_size=28311552
+
+blk.19.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3902100736
+  file_offset=3913069024 xe93cb1e0
+  block_size=16384
+
+blk.20.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=3902117120
+  file_offset=3913085408 xe93cf1e0
+  block_size=9437184
+
+blk.20.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=3911554304
+  file_offset=3922522592 xe9ccf1e0
+  block_size=16384
+
+blk.20.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=3911570688
+  file_offset=3922538976 xe9cd31e0
+  block_size=18874368
+
+blk.20.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=3930445056
+  file_offset=3941413344 xeaed31e0
+  block_size=28311552
+
+blk.20.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3958756608
+  file_offset=3969724896 xec9d31e0
+  block_size=28311552
+
+blk.20.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=3987068160
+  file_offset=3998036448 xee4d31e0
+  block_size=28311552
+
+blk.20.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4015379712
+  file_offset=4026348000 xeffd31e0
+  block_size=16384
+
+blk.20.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=4015396096
+  file_offset=4026364384 xeffd71e0
+  block_size=128
+
+blk.20.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=4015396224
+  file_offset=4026364512 xeffd7260
+  block_size=139264
+
+blk.20.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=4015535488
+  file_offset=4026503776 xefff9260
+  block_size=139264
+
+blk.20.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=4015674752
+  file_offset=4026643040 xf001b260
+  block_size=131072
+
+blk.20.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=4015805824
+  file_offset=4026774112 xf003b260
+  block_size=128
+
+blk.20.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=4015805952
+  file_offset=4026774240 xf003b2e0
+  block_size=512
+
+blk.20.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=4015806464
+  file_offset=4026774752 xf003b4e0
+  block_size=11534336
+
+blk.21.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=4027340800
+  file_offset=4038309088 xf0b3b4e0
+  block_size=9437184
+
+blk.21.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4036777984
+  file_offset=4047746272 xf143b4e0
+  block_size=16384
+
+blk.21.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=4036794368
+  file_offset=4047762656 xf143f4e0
+  block_size=18874368
+
+blk.21.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=4055668736
+  file_offset=4066637024 xf263f4e0
+  block_size=28311552
+
+blk.21.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4083980288
+  file_offset=4094948576 xf413f4e0
+  block_size=28311552
+
+blk.21.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4112291840
+  file_offset=4123260128 xf5c3f4e0
+  block_size=28311552
+
+blk.21.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4140603392
+  file_offset=4151571680 xf773f4e0
+  block_size=16384
+
+blk.21.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=4140619776
+  file_offset=4151588064 xf77434e0
+  block_size=128
+
+blk.21.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=4140619904
+  file_offset=4151588192 xf7743560
+  block_size=139264
+
+blk.21.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=4140759168
+  file_offset=4151727456 xf7765560
+  block_size=139264
+
+blk.21.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=4140898432
+  file_offset=4151866720 xf7787560
+  block_size=131072
+
+blk.21.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=4141029504
+  file_offset=4151997792 xf77a7560
+  block_size=128
+
+blk.21.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=4141029632
+  file_offset=4151997920 xf77a75e0
+  block_size=512
+
+blk.21.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=4141030144
+  file_offset=4151998432 xf77a77e0
+  block_size=11534336
+
+blk.22.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=4152564480
+  file_offset=4163532768 xf82a77e0
+  block_size=9437184
+
+blk.22.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4162001664
+  file_offset=4172969952 xf8ba77e0
+  block_size=16384
+
+blk.22.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=4162018048
+  file_offset=4172986336 xf8bab7e0
+  block_size=18874368
+
+blk.22.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=4180892416
+  file_offset=4191860704 xf9dab7e0
+  block_size=28311552
+
+blk.22.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4209203968
+  file_offset=4220172256 xfb8ab7e0
+  block_size=28311552
+
+blk.22.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4237515520
+  file_offset=4248483808 xfd3ab7e0
+  block_size=28311552
+
+blk.22.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4265827072
+  file_offset=4276795360 xfeeab7e0
+  block_size=16384
+
+blk.22.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=4265843456
+  file_offset=4276811744 xfeeaf7e0
+  block_size=128
+
+blk.22.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=4265843584
+  file_offset=4276811872 xfeeaf860
+  block_size=139264
+
+blk.22.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=4265982848
+  file_offset=4276951136 xfeed1860
+  block_size=139264
+
+blk.22.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=4266122112
+  file_offset=4277090400 xfeef3860
+  block_size=131072
+
+blk.22.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=4266253184
+  file_offset=4277221472 xfef13860
+  block_size=128
+
+blk.22.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=4266253312
+  file_offset=4277221600 xfef138e0
+  block_size=512
+
+blk.22.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=4266253824
+  file_offset=4277222112 xfef13ae0
+  block_size=11534336
+
+blk.23.attn_k.weight
+  shape=[4096, 1024] 
+  ggml_type=12
+  tensor_offset=4277788160
+  file_offset=4288756448 xffa13ae0
+  block_size=2359296
+
+blk.23.attn_k_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=4280147456
+  file_offset=4291115744 xffc53ae0
+  block_size=1024
+
+blk.23.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4280148480
+  file_offset=4291116768 xffc53ee0
+  block_size=16384
+
+blk.23.attn_output.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=4280164864
+  file_offset=4291133152 xffc57ee0
+  block_size=9437184
+
+blk.23.attn_q.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=4289602048
+  file_offset=4300570336 x100557ee0
+  block_size=18874368
+
+blk.23.attn_q_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=4308476416
+  file_offset=4319444704 x101757ee0
+  block_size=1024
+
+blk.23.attn_v.weight
+  shape=[4096, 1024] 
+  ggml_type=12
+  tensor_offset=4308477440
+  file_offset=4319445728 x1017582e0
+  block_size=2359296
+
+blk.23.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=4310836736
+  file_offset=4321805024 x1019982e0
+  block_size=28311552
+
+blk.23.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4339148288
+  file_offset=4350116576 x1034982e0
+  block_size=28311552
+
+blk.23.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4367459840
+  file_offset=4378428128 x104f982e0
+  block_size=28311552
+
+blk.23.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4395771392
+  file_offset=4406739680 x106a982e0
+  block_size=16384
+
+blk.24.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=4395787776
+  file_offset=4406756064 x106a9c2e0
+  block_size=9437184
+
+blk.24.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4405224960
+  file_offset=4416193248 x10739c2e0
+  block_size=16384
+
+blk.24.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=4405241344
+  file_offset=4416209632 x1073a02e0
+  block_size=18874368
+
+blk.24.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=4424115712
+  file_offset=4435084000 x1085a02e0
+  block_size=28311552
+
+blk.24.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4452427264
+  file_offset=4463395552 x10a0a02e0
+  block_size=28311552
+
+blk.24.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4480738816
+  file_offset=4491707104 x10bba02e0
+  block_size=28311552
+
+blk.24.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4509050368
+  file_offset=4520018656 x10d6a02e0
+  block_size=16384
+
+blk.24.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=4509066752
+  file_offset=4520035040 x10d6a42e0
+  block_size=128
+
+blk.24.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=4509066880
+  file_offset=4520035168 x10d6a4360
+  block_size=139264
+
+blk.24.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=4509206144
+  file_offset=4520174432 x10d6c6360
+  block_size=139264
+
+blk.24.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=4509345408
+  file_offset=4520313696 x10d6e8360
+  block_size=131072
+
+blk.24.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=4509476480
+  file_offset=4520444768 x10d708360
+  block_size=128
+
+blk.24.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=4509476608
+  file_offset=4520444896 x10d7083e0
+  block_size=512
+
+blk.24.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=4509477120
+  file_offset=4520445408 x10d7085e0
+  block_size=11534336
+
+blk.25.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=4521011456
+  file_offset=4531979744 x10e2085e0
+  block_size=9437184
+
+blk.25.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4530448640
+  file_offset=4541416928 x10eb085e0
+  block_size=16384
+
+blk.25.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=4530465024
+  file_offset=4541433312 x10eb0c5e0
+  block_size=18874368
+
+blk.25.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=4549339392
+  file_offset=4560307680 x10fd0c5e0
+  block_size=28311552
+
+blk.25.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4577650944
+  file_offset=4588619232 x11180c5e0
+  block_size=28311552
+
+blk.25.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4605962496
+  file_offset=4616930784 x11330c5e0
+  block_size=28311552
+
+blk.25.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4634274048
+  file_offset=4645242336 x114e0c5e0
+  block_size=16384
+
+blk.25.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=4634290432
+  file_offset=4645258720 x114e105e0
+  block_size=128
+
+blk.25.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=4634290560
+  file_offset=4645258848 x114e10660
+  block_size=139264
+
+blk.25.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=4634429824
+  file_offset=4645398112 x114e32660
+  block_size=139264
+
+blk.25.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=4634569088
+  file_offset=4645537376 x114e54660
+  block_size=131072
+
+blk.25.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=4634700160
+  file_offset=4645668448 x114e74660
+  block_size=128
+
+blk.25.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=4634700288
+  file_offset=4645668576 x114e746e0
+  block_size=512
+
+blk.25.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=4634700800
+  file_offset=4645669088 x114e748e0
+  block_size=11534336
+
+blk.26.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=4646235136
+  file_offset=4657203424 x1159748e0
+  block_size=9437184
+
+blk.26.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4655672320
+  file_offset=4666640608 x1162748e0
+  block_size=16384
+
+blk.26.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=4655688704
+  file_offset=4666656992 x1162788e0
+  block_size=18874368
+
+blk.26.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=4674563072
+  file_offset=4685531360 x1174788e0
+  block_size=28311552
+
+blk.26.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4702874624
+  file_offset=4713842912 x118f788e0
+  block_size=28311552
+
+blk.26.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4731186176
+  file_offset=4742154464 x11aa788e0
+  block_size=28311552
+
+blk.26.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4759497728
+  file_offset=4770466016 x11c5788e0
+  block_size=16384
+
+blk.26.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=4759514112
+  file_offset=4770482400 x11c57c8e0
+  block_size=128
+
+blk.26.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=4759514240
+  file_offset=4770482528 x11c57c960
+  block_size=139264
+
+blk.26.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=4759653504
+  file_offset=4770621792 x11c59e960
+  block_size=139264
+
+blk.26.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=4759792768
+  file_offset=4770761056 x11c5c0960
+  block_size=131072
+
+blk.26.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=4759923840
+  file_offset=4770892128 x11c5e0960
+  block_size=128
+
+blk.26.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=4759923968
+  file_offset=4770892256 x11c5e09e0
+  block_size=512
+
+blk.26.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=4759924480
+  file_offset=4770892768 x11c5e0be0
+  block_size=11534336
+
+blk.27.attn_k.weight
+  shape=[4096, 1024] 
+  ggml_type=12
+  tensor_offset=4771458816
+  file_offset=4782427104 x11d0e0be0
+  block_size=2359296
+
+blk.27.attn_k_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=4773818112
+  file_offset=4784786400 x11d320be0
+  block_size=1024
+
+blk.27.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4773819136
+  file_offset=4784787424 x11d320fe0
+  block_size=16384
+
+blk.27.attn_output.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=4773835520
+  file_offset=4784803808 x11d324fe0
+  block_size=9437184
+
+blk.27.attn_q.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=4783272704
+  file_offset=4794240992 x11dc24fe0
+  block_size=18874368
+
+blk.27.attn_q_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=4802147072
+  file_offset=4813115360 x11ee24fe0
+  block_size=1024
+
+blk.27.attn_v.weight
+  shape=[4096, 1024] 
+  ggml_type=12
+  tensor_offset=4802148096
+  file_offset=4813116384 x11ee253e0
+  block_size=2359296
+
+blk.27.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=4804507392
+  file_offset=4815475680 x11f0653e0
+  block_size=28311552
+
+blk.27.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4832818944
+  file_offset=4843787232 x120b653e0
+  block_size=28311552
+
+blk.27.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4861130496
+  file_offset=4872098784 x1226653e0
+  block_size=28311552
+
+blk.27.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4889442048
+  file_offset=4900410336 x1241653e0
+  block_size=16384
+
+blk.28.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=4889458432
+  file_offset=4900426720 x1241693e0
+  block_size=9437184
+
+blk.28.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=4898895616
+  file_offset=4909863904 x124a693e0
+  block_size=16384
+
+blk.28.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=4898912000
+  file_offset=4909880288 x124a6d3e0
+  block_size=18874368
+
+blk.28.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=4917786368
+  file_offset=4928754656 x125c6d3e0
+  block_size=28311552
+
+blk.28.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4946097920
+  file_offset=4957066208 x12776d3e0
+  block_size=28311552
+
+blk.28.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=4974409472
+  file_offset=4985377760 x12926d3e0
+  block_size=28311552
+
+blk.28.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=5002721024
+  file_offset=5013689312 x12ad6d3e0
+  block_size=16384
+
+blk.28.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=5002737408
+  file_offset=5013705696 x12ad713e0
+  block_size=128
+
+blk.28.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=5002737536
+  file_offset=5013705824 x12ad71460
+  block_size=139264
+
+blk.28.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=5002876800
+  file_offset=5013845088 x12ad93460
+  block_size=139264
+
+blk.28.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=5003016064
+  file_offset=5013984352 x12adb5460
+  block_size=131072
+
+blk.28.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=5003147136
+  file_offset=5014115424 x12add5460
+  block_size=128
+
+blk.28.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=5003147264
+  file_offset=5014115552 x12add54e0
+  block_size=512
+
+blk.28.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=5003147776
+  file_offset=5014116064 x12add56e0
+  block_size=11534336
+
+blk.29.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=5014682112
+  file_offset=5025650400 x12b8d56e0
+  block_size=9437184
+
+blk.29.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=5024119296
+  file_offset=5035087584 x12c1d56e0
+  block_size=16384
+
+blk.29.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=5024135680
+  file_offset=5035103968 x12c1d96e0
+  block_size=18874368
+
+blk.29.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=5043010048
+  file_offset=5053978336 x12d3d96e0
+  block_size=28311552
+
+blk.29.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=5071321600
+  file_offset=5082289888 x12eed96e0
+  block_size=28311552
+
+blk.29.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=5099633152
+  file_offset=5110601440 x1309d96e0
+  block_size=28311552
+
+blk.29.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=5127944704
+  file_offset=5138912992 x1324d96e0
+  block_size=16384
+
+blk.29.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=5127961088
+  file_offset=5138929376 x1324dd6e0
+  block_size=128
+
+blk.29.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=5127961216
+  file_offset=5138929504 x1324dd760
+  block_size=139264
+
+blk.29.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=5128100480
+  file_offset=5139068768 x1324ff760
+  block_size=139264
+
+blk.29.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=5128239744
+  file_offset=5139208032 x132521760
+  block_size=131072
+
+blk.29.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=5128370816
+  file_offset=5139339104 x132541760
+  block_size=128
+
+blk.29.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=5128370944
+  file_offset=5139339232 x1325417e0
+  block_size=512
+
+blk.29.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=5128371456
+  file_offset=5139339744 x1325419e0
+  block_size=11534336
+
+blk.30.attn_gate.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=5139905792
+  file_offset=5150874080 x1330419e0
+  block_size=9437184
+
+blk.30.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=5149342976
+  file_offset=5160311264 x1339419e0
+  block_size=16384
+
+blk.30.attn_qkv.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=5149359360
+  file_offset=5160327648 x1339459e0
+  block_size=18874368
+
+blk.30.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=5168233728
+  file_offset=5179202016 x134b459e0
+  block_size=28311552
+
+blk.30.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=5196545280
+  file_offset=5207513568 x1366459e0
+  block_size=28311552
+
+blk.30.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=5224856832
+  file_offset=5235825120 x1381459e0
+  block_size=28311552
+
+blk.30.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=5253168384
+  file_offset=5264136672 x139c459e0
+  block_size=16384
+
+blk.30.ssm_a
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=5253184768
+  file_offset=5264153056 x139c499e0
+  block_size=128
+
+blk.30.ssm_alpha.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=5253184896
+  file_offset=5264153184 x139c49a60
+  block_size=139264
+
+blk.30.ssm_beta.weight
+  shape=[4096, 32] 
+  ggml_type=8
+  tensor_offset=5253324160
+  file_offset=5264292448 x139c6ba60
+  block_size=139264
+
+blk.30.ssm_conv1d.weight
+  shape=[4, 8192] 
+  ggml_type=0
+  tensor_offset=5253463424
+  file_offset=5264431712 x139c8da60
+  block_size=131072
+
+blk.30.ssm_dt.bias
+  shape=[32] 
+  ggml_type=0
+  tensor_offset=5253594496
+  file_offset=5264562784 x139cada60
+  block_size=128
+
+blk.30.ssm_norm.weight
+  shape=[128] 
+  ggml_type=0
+  tensor_offset=5253594624
+  file_offset=5264562912 x139cadae0
+  block_size=512
+
+blk.30.ssm_out.weight
+  shape=[4096, 4096] 
+  ggml_type=13
+  tensor_offset=5253595136
+  file_offset=5264563424 x139cadce0
+  block_size=11534336
+
+blk.31.attn_k.weight
+  shape=[4096, 1024] 
+  ggml_type=12
+  tensor_offset=5265129472
+  file_offset=5276097760 x13a7adce0
+  block_size=2359296
+
+blk.31.attn_k_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=5267488768
+  file_offset=5278457056 x13a9edce0
+  block_size=1024
+
+blk.31.attn_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=5267489792
+  file_offset=5278458080 x13a9ee0e0
+  block_size=16384
+
+blk.31.attn_output.weight
+  shape=[4096, 4096] 
+  ggml_type=12
+  tensor_offset=5267506176
+  file_offset=5278474464 x13a9f20e0
+  block_size=9437184
+
+blk.31.attn_q.weight
+  shape=[4096, 8192] 
+  ggml_type=12
+  tensor_offset=5276943360
+  file_offset=5287911648 x13b2f20e0
+  block_size=18874368
+
+blk.31.attn_q_norm.weight
+  shape=[256] 
+  ggml_type=0
+  tensor_offset=5295817728
+  file_offset=5306786016 x13c4f20e0
+  block_size=1024
+
+blk.31.attn_v.weight
+  shape=[4096, 1024] 
+  ggml_type=12
+  tensor_offset=5295818752
+  file_offset=5306787040 x13c4f24e0
+  block_size=2359296
+
+blk.31.ffn_down.weight
+  shape=[12288, 4096] 
+  ggml_type=12
+  tensor_offset=5298178048
+  file_offset=5309146336 x13c7324e0
+  block_size=28311552
+
+blk.31.ffn_gate.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=5326489600
+  file_offset=5337457888 x13e2324e0
+  block_size=28311552
+
+blk.31.ffn_up.weight
+  shape=[4096, 12288] 
+  ggml_type=12
+  tensor_offset=5354801152
+  file_offset=5365769440 x13fd324e0
+  block_size=28311552
+
+blk.31.post_attention_norm.weight
+  shape=[4096] 
+  ggml_type=0
+  tensor_offset=5383112704
+  file_offset=5394080992 x1418324e0
+  block_size=16384

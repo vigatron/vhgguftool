@@ -86,6 +86,11 @@ verr RunCommand(VHGGUF & gguf, const CLIArgs &args)
         if (!outfile.write(data.data(), data.size()))
             return verrmsg(2, "Cant save tensor data to file: " + args.saveTensorFile);
 
+
+        //
+        // cmdShowSignsMap(data, 32, 64);
+        ShowBitField2D(data, 16);
+
         return vok;
     }
 

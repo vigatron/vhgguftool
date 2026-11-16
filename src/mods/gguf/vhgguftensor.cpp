@@ -122,7 +122,9 @@ bool VHGUFFTensor::bytes_for_elements(u64 elems, u64 *bytes) const
     return true;
 }
 
-/** @brief Get the size of one dimension in elements. @param idx Dimension index. */
+/**
+ * @brief Get the size of one dimension in elements.
+ * @param idx Dimension index. */
 u64 VHGUFFTensor::dim_size_part(uint8_t idx) const
 {
     return dims[idx];
@@ -134,7 +136,9 @@ u64 VHGUFFTensor::block_pos() const
     return offset;
 }
 
-/** @brief Get the size in bytes of one dimension. @param idx Dimension index. */
+/**
+ * @brief Get the size in bytes of one dimension.
+ * @param idx Dimension index. */
 u64 VHGUFFTensor::block_size_part(uint8_t idx) const
 {
     u64 bytes = 0;
@@ -166,7 +170,11 @@ void VHGUFFTensor::dump_meta() const
     std::cout << "\n";
 }
 
-/** @brief Print detailed tensor information. @param data_start Data section start. @param file_size Total file size. */
+/**
+ * @brief Print detailed tensor information.
+ * @param data_start Data section start.
+ * @param file_size Total file size. */
+
 void VHGUFFTensor::dump(u64 data_start, u64 file_size) const
 {
     if (offset > file_size - std::min(data_start, file_size))
