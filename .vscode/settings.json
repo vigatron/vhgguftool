@@ -5,30 +5,85 @@
             // "--help",
             // "--version",
 
-            // "-model-file", "../model/Qwen_Qwen3.5-0.8B-bf16.gguf",
-            "-model-file", "../model/Qwen2.5-3B-Instruct-Q4_K_M.gguf",
+            "-model-file", "../models/Qwen3.5-0.8B-bf16.gguf",
+            // "-model-file", "../models/SmolLM2-135M-Instruct-f16.gguf"
+
+            // "-model-file", "../models/Qwen2.5-3B-Instruct-Q4_K_M.gguf",
+            // "-model-file", "../models/Qwen2.5-coder-3b-instruct-q8_0.gguf"
+            // "-model-file", "../models/Qwen2.5-7B-Instruct-Q4_K_M.gguf",
+            // "-model-file", "../models/Qwen2.5-coder-3b-instruct-q8_0.gguf",
+            // "-model-file", "../models/Qwen3.5-0.8B-Q8_0.gguf",
+            // "-model-file", "../models/Qwen3.5-4B-Q4_K_M.gguf",
+            // "-model-file", "../models/Qwen3.5-9B-Q4_K_S.gguf",
+            // "-model-file", "../models/SmolLM2-135M-Instruct-Q8_0.gguf",
+            // "-model-file", "../models/SmolLM2-135M-Instruct-f16.gguf",
 
             //
-            // "-show-model-info",
+            "-show-model-info",
             "-show-metadata-list",
-            // "-show-tensors-list",
+            "-show-tensors-list",
             // "-show-all"
 
             // "-cmd-extract-metadata",
             // "-param-meta-key", "tokenizer.chat_template",
             // "-save-meta", "tokenizer.chat_template.bin",
 
-            // *** Extract "general.license.link"
-            "-cmd-extract-metadata",
-            "-param-meta-key", "general.license.link",
-            "-save-meta-file", "meta.bin"
+            // // *** Extract "general.license.link"
+            // "-cmd-extract-metadata",
+            // "-param-meta-key", "general.license.link",
+            // "-save-meta-file", "meta.bin"
+
+            // --------------
+            // QWEN CODER 2.5
+            // --------------
+
+            // // *** Tockens
+
+            // "-cmd-extract-metadata",
+            // "-param-meta-key", "tokenizer.ggml.tokens",
+            // "-save-meta-file", "tokenizer.ggml.tokens.bin",
+
+            // "-cmd-extract-metadata",
+            // "-param-meta-key", "tokenizer.ggml.token_type",
+            // "-save-meta-file", "tokenizer.ggml.token_type.bin",
+
+            // "-cmd-extract-metadata",
+            // "-param-meta-key", "tokenizer.ggml.merges",
+            // "-save-meta-file", "tokenizer.ggml.merges.bin",
+
+            // // *** Tensors
 
             // // Command: Extract Tensor
-            // "-cmd-extract-tensor",
-            // "-param-tensor-name", "token_embd.weight",
-            // "-param-tensor-laynum", "3", // Starting layer
-            // "-param-tensor-laycnt", "4", // All layers
-            // "-save-tensor-file", "dump3.bin"
+            "-cmd-extract-tensordata",
+            "-param-tensor-name", "token_embd.weight",
+            "-param-tensor-laynum", "0", // Starting layer
+
+            // "-param-tensor-laycnt", "1", // Single layers
+            //"-save-tensor-file", "Qwen3.5-0.8B-bf16.token_embd.weight_nr0.bin"
+
+            "-param-tensor-laycnt", "0", // All layers
+            "-save-tensor-file", "Qwen3.5-0.8B-bf16.token_embd.weight_all.bin"
+
+
+            // "-param-tensor-only-s",
+            // "-save-tensor-file", "Qwen3.5-0.8B-bf16.token_embd.weight_all_sign.bin"
+
+            // "-param-tensor-only-e",
+            // "-save-tensor-file", "Qwen3.5-0.8B-bf16.token_embd.weight_all_exps.bin"
+
+            // "-param-tensor-only-m",
+            // "-save-tensor-file", "Qwen3.5-0.8B-bf16.token_embd.weight_all_mnts.bin"
+
+            // Save as is
+            // "-save-tensor-file", "Qwen3.5-0.8B-bf16.token_embd.weight_all.bin"
+
+            // // Command: Extract Tensor
+            // "-cmd-extract-tensordata",
+            // "-param-tensor-name", "output.weight",
+            // "-param-tensor-laynum", "0", // Starting layer
+            // "-param-tensor-laycnt", "0", // All layers
+            // "-save-tensor-file", "output.weight.bin"
+
 
         ]
     }

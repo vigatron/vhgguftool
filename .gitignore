@@ -3,7 +3,12 @@
 build
 
 # AI Models folder
-model
+*.gguf
+
+models
+
+modelsdata
+
 
 # Temporary folder
 tmp

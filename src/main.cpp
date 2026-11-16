@@ -6,9 +6,15 @@
 
 
 /**
- * 
+ * @brief Open and fully parse the GGUF model structure.
+ * @details Opens the model file and runs the full scan pipeline:
+ *          header, metadata, tensors and calibration. Every stage must
+ *          succeed, otherwise the first failing stage's error code is returned.
+ * @param gguf GGUF reader instance to populate.
+ * @param args Parsed CLI arguments (provides the model file path).
+ * @return `vok` on success, error code otherwise.
  */
-verr Scan_GGUF_File(VHGGUF & gguf, const CLIArgs &args)
+static verr Scan_GGUF_File(VHGGUF & gguf, const CLIArgs &args)
 {
 
     if (vok != gguf.open(args.modelFileName))
@@ -34,7 +40,7 @@ verr Scan_GGUF_File(VHGGUF & gguf, const CLIArgs &args)
  * @param args Parsed CLI arguments.
  * @return Result code.
  * */
-verr RunCommand(VHGGUF & gguf, const CLIArgs &args)
+static verr RunCommand(VHGGUF & gguf, const CLIArgs &args)
 {
 
     // cmd Show GGUF Info
@@ -49,7 +55,7 @@ verr RunCommand(VHGGUF & gguf, const CLIArgs &args)
     if(args.showTensors)
         gguf.dump_tensors();
 
-    // cmd Extract Meta Info
+    // Command: Extract Meta Info
     if(args.cmdExtractMeta) {
 
         size_t midx;
@@ -68,23 +74,68 @@ verr RunCommand(VHGGUF & gguf, const CLIArgs &args)
         return vok;
     }
 
-    //
+    // Command: Extract tensor data array
     if(args.cmdExtractTensor) {
 
         size_t tidx;
         if (!gguf.FindTensorID(args.tensor_name, &tidx))
             return verrmsg(1, "Tensor data not found: " + args.tensor_name);
 
+        //
         const VHGUFFTensor &tensor = gguf.GetTensor(tidx);
 
-        std::vector<uint8_t> data = gguf.ReadTensorBytes(tensor, args.tensor_layer_from, args.tensor_layer_count);
-        if(!data.size())
+        std::vector<uint8_t> arru8;
+
+        if(args.PartialTensorExtraction()) { 
+
+            std::vector<uint16_t> arru16 = gguf.ReadTensorContent(
+                tensor,
+                args.tensor_layer_from,
+                args.tensor_layer_count);
+
+            arru8.resize(arru16.size());
+
+            // Extract fields before saving?
+            if(args.param_tensor_only_s) {
+
+                for(size_t i=0;i<arru16.size();i++)
+                    arru8[i] = arru16[i]>>15;
+
+            } else if(args.param_tensor_only_e) {
+
+                for(size_t i=0;i<arru16.size();i++)
+                    arru8[i] = (arru16[i]>>7) & 0xFF;
+
+            } else if(args.param_tensor_only_m) {
+
+                for(size_t i=0;i<arru16.size();i++)
+                    arru8[i] = arru16[i] & 0x7F;
+
+            }
+
+        } else {
+
+            arru8 = gguf.ReadTensorBytes(
+                tensor,
+                args.tensor_layer_from,
+                args.tensor_layer_count);
+
+        }
+
+
+        if(!arru8.size())
             return verrmsg(2, "Cant extract tensor layers");
+
 
         // Save Result
         VHFile outfile(args.saveTensorFile);
-        if (!outfile.write(data.data(), data.size()))
+
+        if (!outfile.write(arru8.data(), arru8.size()))
             return verrmsg(2, "Cant save tensor data to file: " + args.saveTensorFile);
+
+        // Misc
+        // cmdShowSignsMap(data, 32, 64);
+        // ShowBitField2D(data, 16);
 
         return vok;
     }

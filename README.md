@@ -1,31 +1,24 @@
 # vhgguftool
 
-Language: C++17
+[![C++](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://isocpp.org/)
+[![CMake](https://img.shields.io/badge/CMake-3.16+-green.svg)](https://cmake.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/Version-0.1.1-orange.svg)](https://github.com/vigatron/vhgguftool/releases)
 
-Version: 0.1.0
+**Tool name** `vhgguftool`
+
+Author : V01G04A81 Viktor Glebov  
+Source code : https://github.com/vigatron/vhgguftool  
+License : MIT
 
 A console tool for analyzing `.gguf` files (GGUF v2/v3) and extracting raw data from them.
 
 `vhgguftool` works with a model file in read-only mode: it never modifies the source
 `.gguf` file and only writes the data you explicitly ask it to extract.
 
-## Table of contents
-
-- [Features](#features)
-- [How it works](#how-it-works)
-- [Requirements](#requirements)
-- [Building](#building)
-- [Output modes](#output-modes)
-- [Command-line parameters](#command-line-parameters)
-- [Output format](#output-format)
-- [Data extraction](#data-extraction)
-- [Usage examples](#usage-examples)
-- [Exit codes](#exit-codes)
-- [GGUF type codes](#gguf-type-codes)
-- [Project structure](#project-structure)
-- [Dependencies and submodules](#dependencies-and-submodules)
-- [Limitations](#limitations)
-- [License](#license)
+- Version: `0.1.1` (pre-1.0)
+- Standard: C++17, CMake >= 3.16, no runtime dependencies
+- External dependencies: three read-only git submodules under `src/extmods/`
 
 ## Features
 
@@ -43,6 +36,58 @@ Data extraction to a user-specified file:
 - A single Meta Info entry value (raw value bytes).
 - Tensor data, entirely or partially (layer range), for rank-1 and rank-2 tensors,
   as raw 16-bit words (e.g. BF16/F16).
+
+## Command-line parameters
+
+### General parameters and information display
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `-model-file` | File | — | Path to the `.gguf` model file. **Required** for every command except `--help` / `--version` |
+| `-show-model-info` | Flag | off | Show general model information (Summary) |
+| `-show-metadata-list` | Flag | off | Show Meta Info sections |
+| `-show-tensors-list` | Flag | off | Show tensor parameters |
+| `-show-all` | Flag | off | Show all information in detail: model-info, metadata-list, tensors-list |
+| `-format` | String | `text` | Output format: `text` or `json` (*reserved*) |
+| `--help` | Cmd | — | Show the command list and exit |
+| `--version` | Cmd | — | Show program version and exit |
+
+`-show-all` sets `-show-model-info`, `-show-metadata-list` and
+`-show-tensors-list` at once; individual flags can be combined freely, so the
+output order is always: model info → metadata → tensors.
+
+### Meta Info extraction
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `-cmd-extract-metadata` | Cmd | — | Extract a Meta Info entry value |
+| `-param-meta-key` | String | — | Exact name of the Meta Info key to extract |
+| `-save-meta-file` | File | `meta_dump.bin` | Output file for the extracted Meta Info value |
+
+The key must exist in the file (exact, case-sensitive match), otherwise the
+command fails.
+
+### Tensor extraction
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `-cmd-extract-tensordata` | Cmd | — | Extract tensor data |
+| `-param-tensor-name` | String | — | Exact tensor name to extract (e.g. `token_embd.weight`) |
+| `-param-tensor-laynum` | Int | `0` | Starting layer (accepted range `0..131072`) |
+| `-param-tensor-laycnt` | Int | `1` | Number of layers to extract, `0` = whole tensor (accepted range `0..131072`) |
+| `-param-tensor-only-s` | Flag | off | Keep only the BF16 sign bit of each 16-bit word |
+| `-param-tensor-only-e` | Flag | off | Keep only the BF16 exponent bits of each 16-bit word |
+| `-param-tensor-only-m` | Flag | off | Keep only the BF16 mantissa bits of each 16-bit word |
+| `-save-tensor-file` | File | `tensor_dump.bin` | Output file for the extracted tensor data |
+
+Only one command (`-cmd-extract-metadata` or `-cmd-extract-tensordata`) is executed
+per run; when both are given, the metadata command wins.
+
+The `-param-tensor-only-s/-e/-m` flags are mutually exclusive (passing more than one
+is an error). When one of them is set, tensor data is read as 16-bit words and only
+the selected BF16 field (sign / exponent / mantissa) is written out, one byte per
+value; without any of them the raw 16-bit words are written as-is. These flags apply
+only to 16-bit element types (BF16/F16).
 
 ## How it works
 
@@ -96,7 +141,7 @@ Notes:
 
 - `CMAKE_EXPORT_COMPILE_COMMANDS` is enabled, `build/compile_commands.json` is
   generated for IDE/clangd integration.
-- The version is defined once in `CMakeLists.txt` (`project(... VERSION 0.1.0 ...)`)
+- The version is defined once in `CMakeLists.txt` (`project(... VERSION 0.1.1 ...)`)
   and is propagated to the code through the generated header
   `generated/version_vhgguftool.h` (template: `src/version.h.in`).
 - `-show-model-info`, `-show-metadata-list`, `-show-tensors-list` and `-show-all`
@@ -113,49 +158,6 @@ Notes:
 
 Select the mode with `-format text|json`. Any value other than `json` is treated
 as text, and `json` currently behaves exactly like `text`.
-
-## Command-line parameters
-
-### General parameters and information display
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `-model-file` | File | — | Path to the `.gguf` model file. **Required** for every command except `--help` / `--version` |
-| `-show-model-info` | Flag | off | Show general model information (Summary) |
-| `-show-metadata-list` | Flag | off | Show Meta Info sections |
-| `-show-tensors-list` | Flag | off | Show tensor parameters |
-| `-show-all` | Flag | off | Show all information in detail: model-info, metadata-list, tensors-list |
-| `-format` | String | `text` | Output format: `text` or `json` (*reserved*) |
-| `--help` | Cmd | — | Show the command list and exit |
-| `--version` | Cmd | — | Show program version and exit |
-
-`-show-all` sets `-show-model-info`, `-show-metadata-list` and
-`-show-tensors-list` at once; individual flags can be combined freely, so the
-output order is always: model info → metadata → tensors.
-
-### Meta Info extraction
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `-cmd-extract-metadata` | Cmd | — | Extract a Meta Info entry value |
-| `-param-meta-key` | String | — | Exact name of the Meta Info key to extract |
-| `-save-meta-file` | File | `meta_dump.bin` | Output file for the extracted Meta Info value |
-
-The key must exist in the file (exact, case-sensitive match), otherwise the
-command fails.
-
-### Tensor extraction
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `-cmd-extract-tensordata` | Cmd | — | Extract tensor data |
-| `-param-tensor-name` | String | — | Exact tensor name to extract (e.g. `token_embd.weight`) |
-| `-param-tensor-laynum` | Int | `0` | Starting layer (accepted range `0..131072`) |
-| `-param-tensor-laycnt` | Int | `1` | Number of layers to extract, `0` = whole tensor (accepted range `0..131072`) |
-| `-save-tensor-file` | File | `tensor_dump.bin` | Output file for the extracted tensor data |
-
-Only one command (`-cmd-extract-metadata` or `-cmd-extract-tensordata`) is executed
-per run; when both are given, the metadata command wins.
 
 ## Output format
 
@@ -336,7 +338,9 @@ vhgguftool/
 ├── CMakeLists.txt              build configuration, version, targets
 ├── README.md
 ├── AGENTS.md                   project notes for AI agents
-├── model/                      local test models (git-ignored symlinks)
+├── models/                     GGUF test models (git-ignored symlinks) and their configs
+├── modelsdata/                 reference dumps of model info for regression checks
+├── scripts/                    helper shell scripts for manual testing
 ├── src/
 │   ├── main.cpp/.hpp           entry point, scan and command dispatch
 │   ├── cli.cpp/.hpp            CLI description and parsing (vhlibargs)
@@ -392,6 +396,6 @@ The commented-out `vhlibsvg` submodule is currently not used.
 
 ## License
 
-No license file is currently included in the repository.
+This project is licensed under the MIT License. See the `LICENSE` file for details.
 
 (C) 2026 Viktor Glebov / V01G04A81
