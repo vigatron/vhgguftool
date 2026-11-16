@@ -47,13 +47,17 @@ verr ParseCLI(CLIArgs &args, int argc, char **argv)
         VHCLIArgCmd("--help", "Help"),
         VHCLIArgCmd("--version", "Версия программы"),
 
-        // *** Commands: Extract Meta Info / Извлечение Meta Info
+        // *** Parameters: Extract Meta Info / Извлечение Meta Info
         VHCLIArgStr("-param-meta-key", "", "Ключ Meta Info для извлечения"),
 
-        // *** Commands: Extract Tensor / Извлечение Tensors
+        // *** Parameters: Extract Tensor / Извлечение Tensors
         VHCLIArgStr("-param-tensor-name", "", "Имя Tensor для извлечения"),
         VHCLIArgInt("-param-tensor-laynum", 0, 0, F128K, "Номер слоя"),
         VHCLIArgInt("-param-tensor-laycnt", 1, 0, F128K, "Количество слоев, 0=все слои"),
+
+        VHCLIArgOpt("-param-tensor-only-s", false, "Только знак BF16"),
+        VHCLIArgOpt("-param-tensor-only-e", false, "Только экспонента BF16"),
+        VHCLIArgOpt("-param-tensor-only-m", false, "Только мантисса BF16"),
 
         // Файлы результата
         VHCLIArgFile("-save-meta-file", "meta_dump.bin", "Файл для записи Meta Info (bytesarray)"),
@@ -122,6 +126,20 @@ verr ParseCLI(CLIArgs &args, int argc, char **argv)
         args.tensor_layer_from = parser.GetInt("-param-tensor-laynum");
         args.tensor_layer_count = parser.GetInt("-param-tensor-laycnt");
         args.saveTensorFile = parser.GetFileName("-save-tensor-file");
+
+        args.param_tensor_only_s = parser.GetOpt("-param-tensor-only-s");
+        args.param_tensor_only_e = parser.GetOpt("-param-tensor-only-e");
+        args.param_tensor_only_m = parser.GetOpt("-param-tensor-only-m");
+
+        uint8_t check = 0;
+
+        if(args.param_tensor_only_s) check++;
+        if(args.param_tensor_only_e) check++;
+        if(args.param_tensor_only_m) check++;
+
+        if(check > 1)
+            return verrmsg(1000,"Invalid options mixed -param-tensor-only-*");
+
         return vok;
     }
 

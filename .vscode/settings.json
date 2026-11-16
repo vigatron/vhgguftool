@@ -57,8 +57,13 @@
             "-cmd-extract-tensordata",
             "-param-tensor-name", "token_embd.weight",
             "-param-tensor-laynum", "0", // Starting layer
-            "-param-tensor-laycnt", "1", // All layers
-            "-save-tensor-file", "token_embd.weight_0.bin"
+            "-param-tensor-laycnt", "0", // All layers
+
+            "-param-tensor-only-s",
+            // "-param-tensor-only-e",
+            // "-param-tensor-only-m",
+
+            "-save-tensor-file", "Qwen3.5-0.8B-bf16.token_embd.weight_all_sign.bin"
 
             // // Command: Extract Tensor
             // "-cmd-extract-tensordata",

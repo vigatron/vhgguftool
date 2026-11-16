@@ -35,7 +35,7 @@ std::vector<uint8_t> ExtractTensorsSigns(
     const VHGUFFTensor &tensor = gguf.GetTensor(tidx);
 
     //
-    std::vector<uint16_t> arrbf16 = gguf.ReadTensorContent(tensor, 0, 1);
+    std::vector<uint16_t> arrbf16 = gguf.ReadTensorContent(tensor, layer, 1);
 
     //
     r.resize(static_cast<std::size_t>(arrbf16.size() / 8), 0);
