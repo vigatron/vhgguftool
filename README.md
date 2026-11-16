@@ -9,24 +9,6 @@ A console tool for analyzing `.gguf` files (GGUF v2/v3) and extracting raw data 
 `vhgguftool` works with a model file in read-only mode: it never modifies the source
 `.gguf` file and only writes the data you explicitly ask it to extract.
 
-## Table of contents
-
-- [Features](#features)
-- [How it works](#how-it-works)
-- [Requirements](#requirements)
-- [Building](#building)
-- [Output modes](#output-modes)
-- [Command-line parameters](#command-line-parameters)
-- [Output format](#output-format)
-- [Data extraction](#data-extraction)
-- [Usage examples](#usage-examples)
-- [Exit codes](#exit-codes)
-- [GGUF type codes](#gguf-type-codes)
-- [Project structure](#project-structure)
-- [Dependencies and submodules](#dependencies-and-submodules)
-- [Limitations](#limitations)
-- [License](#license)
-
 ## Features
 
 Information display:
@@ -43,6 +25,49 @@ Data extraction to a user-specified file:
 - A single Meta Info entry value (raw value bytes).
 - Tensor data, entirely or partially (layer range), for rank-1 and rank-2 tensors,
   as raw 16-bit words (e.g. BF16/F16).
+
+## Command-line parameters
+
+### General parameters and information display
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `-model-file` | File | — | Path to the `.gguf` model file. **Required** for every command except `--help` / `--version` |
+| `-show-model-info` | Flag | off | Show general model information (Summary) |
+| `-show-metadata-list` | Flag | off | Show Meta Info sections |
+| `-show-tensors-list` | Flag | off | Show tensor parameters |
+| `-show-all` | Flag | off | Show all information in detail: model-info, metadata-list, tensors-list |
+| `-format` | String | `text` | Output format: `text` or `json` (*reserved*) |
+| `--help` | Cmd | — | Show the command list and exit |
+| `--version` | Cmd | — | Show program version and exit |
+
+`-show-all` sets `-show-model-info`, `-show-metadata-list` and
+`-show-tensors-list` at once; individual flags can be combined freely, so the
+output order is always: model info → metadata → tensors.
+
+### Meta Info extraction
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `-cmd-extract-metadata` | Cmd | — | Extract a Meta Info entry value |
+| `-param-meta-key` | String | — | Exact name of the Meta Info key to extract |
+| `-save-meta-file` | File | `meta_dump.bin` | Output file for the extracted Meta Info value |
+
+The key must exist in the file (exact, case-sensitive match), otherwise the
+command fails.
+
+### Tensor extraction
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `-cmd-extract-tensordata` | Cmd | — | Extract tensor data |
+| `-param-tensor-name` | String | — | Exact tensor name to extract (e.g. `token_embd.weight`) |
+| `-param-tensor-laynum` | Int | `0` | Starting layer (accepted range `0..131072`) |
+| `-param-tensor-laycnt` | Int | `1` | Number of layers to extract, `0` = whole tensor (accepted range `0..131072`) |
+| `-save-tensor-file` | File | `tensor_dump.bin` | Output file for the extracted tensor data |
+
+Only one command (`-cmd-extract-metadata` or `-cmd-extract-tensordata`) is executed
+per run; when both are given, the metadata command wins.
 
 ## How it works
 
@@ -113,49 +138,6 @@ Notes:
 
 Select the mode with `-format text|json`. Any value other than `json` is treated
 as text, and `json` currently behaves exactly like `text`.
-
-## Command-line parameters
-
-### General parameters and information display
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `-model-file` | File | — | Path to the `.gguf` model file. **Required** for every command except `--help` / `--version` |
-| `-show-model-info` | Flag | off | Show general model information (Summary) |
-| `-show-metadata-list` | Flag | off | Show Meta Info sections |
-| `-show-tensors-list` | Flag | off | Show tensor parameters |
-| `-show-all` | Flag | off | Show all information in detail: model-info, metadata-list, tensors-list |
-| `-format` | String | `text` | Output format: `text` or `json` (*reserved*) |
-| `--help` | Cmd | — | Show the command list and exit |
-| `--version` | Cmd | — | Show program version and exit |
-
-`-show-all` sets `-show-model-info`, `-show-metadata-list` and
-`-show-tensors-list` at once; individual flags can be combined freely, so the
-output order is always: model info → metadata → tensors.
-
-### Meta Info extraction
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `-cmd-extract-metadata` | Cmd | — | Extract a Meta Info entry value |
-| `-param-meta-key` | String | — | Exact name of the Meta Info key to extract |
-| `-save-meta-file` | File | `meta_dump.bin` | Output file for the extracted Meta Info value |
-
-The key must exist in the file (exact, case-sensitive match), otherwise the
-command fails.
-
-### Tensor extraction
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `-cmd-extract-tensordata` | Cmd | — | Extract tensor data |
-| `-param-tensor-name` | String | — | Exact tensor name to extract (e.g. `token_embd.weight`) |
-| `-param-tensor-laynum` | Int | `0` | Starting layer (accepted range `0..131072`) |
-| `-param-tensor-laycnt` | Int | `1` | Number of layers to extract, `0` = whole tensor (accepted range `0..131072`) |
-| `-save-tensor-file` | File | `tensor_dump.bin` | Output file for the extracted tensor data |
-
-Only one command (`-cmd-extract-metadata` or `-cmd-extract-tensordata`) is executed
-per run; when both are given, the metadata command wins.
 
 ## Output format
 

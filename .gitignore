@@ -3,7 +3,8 @@
 build
 
 # AI Models folder
-model
+models
+
 
 # Temporary folder
 tmp
