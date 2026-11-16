@@ -5,6 +5,8 @@ build
 # AI Models folder
 models
 
+*.gguf
+
 
 # Temporary folder
 tmp
