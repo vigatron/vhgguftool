@@ -33,6 +33,13 @@ public:
     u64 type_size_bytes() const;
 
     /**
+     * @brief Get the short name of a GGML tensor type.
+     * @param type GGML tensor type code.
+     * @return Type name (e.g. "F32", "BF16", "Q4_K"), or "UNKNOWN".
+     */
+    static std::string type_name(u32 type);
+
+    /**
      * @brief Get the block layout of the tensor type.
      * @details For non-blocked types the block contains one element.
      * @param block_elems Output number of elements per block.

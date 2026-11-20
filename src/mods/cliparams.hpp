@@ -11,14 +11,18 @@ struct CLIArgs
         return param_tensor_only_s || param_tensor_only_e || param_tensor_only_m;
     }
 
+    //
     std::string modelFileName;
-    std::string format;
+
+    //
+    std::string cmd;
 
     bool showInfo = false;
     bool showMeta = false;
     bool showTensors = false;
     bool showAll = false;
 
+    bool cmdGUI = false;
     bool cmdExtractMeta = false;
     bool cmdExtractTensor = false;
     bool cmdVersion = false;

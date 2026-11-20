@@ -174,8 +174,8 @@ private:
 
     // GGUF
     u32 gguf_version;
-    u64 metadata_count;
-    u64 tensor_count;
+    u64 metadata_count = 0;
+    u64 tensor_count = 0;
     u64 alignment = 32;
 
     u64 data_start;

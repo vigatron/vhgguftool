@@ -1,5 +1,5 @@
 #include "cmd_show_signs_map.hpp"
-#include "visual.hpp"
+#include "mods/misc/visual.hpp"
 
 
 /**

@@ -3,7 +3,7 @@
 [![C++](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://isocpp.org/)
 [![CMake](https://img.shields.io/badge/CMake-3.16+-green.svg)](https://cmake.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/Version-0.1.1-orange.svg)](https://github.com/vigatron/vhgguftool/releases)
+[![Version](https://img.shields.io/badge/Version-0.2.0-orange.svg)](https://github.com/vigatron/vhgguftool/releases)
 
 **Tool name** `vhgguftool`
 
@@ -11,14 +11,18 @@ Author : V01G04A81 Viktor Glebov
 Source code : https://github.com/vigatron/vhgguftool  
 License : MIT
 
-A console tool for analyzing `.gguf` files (GGUF v2/v3) and extracting raw data from them.
+A tool for analyzing `.gguf` files (GGUF v2/v3) and extracting raw data from them.
+It runs either as a console (CLI) tool or as a graphical (Qt6 Widgets) application.
 
 `vhgguftool` works with a model file in read-only mode: it never modifies the source
 `.gguf` file and only writes the data you explicitly ask it to extract.
 
-- Version: `0.1.1` (pre-1.0)
-- Standard: C++17, CMake >= 3.16, no runtime dependencies
+- Version: `0.2.0` (pre-1.0)
+- Standard: C++17, CMake >= 3.16
+- GUI: Qt6 Widgets (optional at build time, required for GUI mode)
 - External dependencies: three read-only git submodules under `src/extmods/`
+- Runtime dependencies: Qt6 Widgets (GUI mode only)
+
 
 ## Features
 
@@ -29,7 +33,13 @@ Information display:
 - Meta Info (metadata) list: key, value type, entry offset in the file, entry size
   and the value (for scalar and string types).
 - Tensors list: name, shape, GGML type, offset inside the data section, absolute
-  file offset and data block size in bytes.
+  file offset and data block size in bytes (the GUI shows the size as a compact
+  "smart" string, e.g. `1K`, `5M`, `3G`).
+- Graphical interface (Qt6 Widgets): model file, Metadata and Tensors trees plus a
+  status bar with model name and entry counts; the model can be reloaded from the
+  menu without restarting the application. The tensors tree supports sorting by
+  `Name`, `Type` and `BlockSize` (click a column header); both trees show type
+  codes with a human-readable name (metadata `STRING (8)`, tensors `BF16 (30)`).
 
 Data extraction to a user-specified file:
 
@@ -37,24 +47,35 @@ Data extraction to a user-specified file:
 - Tensor data, entirely or partially (layer range), for rank-1 and rank-2 tensors,
   as raw 16-bit words (e.g. BF16/F16).
 
+![img](docs/vhgguftoolpic.png)
+
+
 ## Command-line parameters
 
 ### General parameters and information display
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `-model-file` | File | — | Path to the `.gguf` model file. **Required** for every command except `--help` / `--version` |
+| `-model-file` | File | — | Path to the `.gguf` model file. **Required** for every command except `--help`, `--version` and `-gui` |
 | `-show-model-info` | Flag | off | Show general model information (Summary) |
 | `-show-metadata-list` | Flag | off | Show Meta Info sections |
 | `-show-tensors-list` | Flag | off | Show tensor parameters |
 | `-show-all` | Flag | off | Show all information in detail: model-info, metadata-list, tensors-list |
 | `-format` | String | `text` | Output format: `text` or `json` (*reserved*) |
+| `-gui` | Cmd | — | Launch the graphical interface (Qt6 Widgets) |
 | `--help` | Cmd | — | Show the command list and exit |
 | `--version` | Cmd | — | Show program version and exit |
 
 `-show-all` sets `-show-model-info`, `-show-metadata-list` and
 `-show-tensors-list` at once; individual flags can be combined freely, so the
 output order is always: model info → metadata → tensors.
+
+### Graphical mode
+
+`-gui` starts the Qt6 Widgets interface instead of printing to the console. In this
+mode `-model-file` is optional: the window opens with empty views and a model can be
+loaded later from the "Load Model ..." menu entry. The status bar shows the model
+file name (without path), the number of metadata entries and the number of tensors.
 
 ### Meta Info extraction
 
@@ -91,8 +112,9 @@ only to 16-bit element types (BF16/F16).
 
 ## How it works
 
-Every invocation (except `--help` / `--version`) reads the whole model structure
-before executing a command:
+In CLI mode every invocation (except `--help` / `--version`) reads the whole model
+structure before executing a command. GUI mode (`-gui`) reads the model at startup
+only when `-model-file` is given, and again on every "Load Model ..." action:
 
 1. Open the `.gguf` file (`-model-file`).
 2. Parse and validate the header: `GGUF` magic, version (only 2 and 3 are
@@ -112,6 +134,8 @@ Because the whole structure is parsed anyway, any error in the container layout
 
 - CMake ≥ 3.16
 - A C++17 compiler (the project is tested with GCC 14)
+- Qt6 (Widgets module) — required to build and run the GUI (`-gui`); the CLI-only
+  build can be produced with `-DVHGGUITOOL_BUILD_CLI=OFF`
 - Ninja (optional, but used by default in the reference build)
 - Git, for cloning submodules
 
@@ -141,9 +165,12 @@ Notes:
 
 - `CMAKE_EXPORT_COMPILE_COMMANDS` is enabled, `build/compile_commands.json` is
   generated for IDE/clangd integration.
-- The version is defined once in `CMakeLists.txt` (`project(... VERSION 0.1.1 ...)`)
+- The version is defined once in `CMakeLists.txt` (`project(... VERSION 0.2.0 ...)`)
   and is propagated to the code through the generated header
   `generated/version_vhgguftool.h` (template: `src/version.h.in`).
+- GUI support requires Qt6; configure CMake with `-DCMAKE_PREFIX_PATH` pointing to
+  your Qt installation if Qt6 is not found automatically. Use
+  `-DVHGGUITOOL_BUILD_CLI=OFF` to skip the GUI and Qt6 dependency entirely.
 - `-show-model-info`, `-show-metadata-list`, `-show-tensors-list` and `-show-all`
   may be combined; `-show-all` is equivalent to enabling all three.
 - Display commands print to standard output; extraction commands write files and
@@ -267,39 +294,7 @@ storage layout in general).
 
 ## Usage examples
 
-```bash
-# Show general model information and metadata
-vhgguftool -model-file model.gguf -show-model-info -show-metadata-list
-
-# Show all information in detail (model, metadata, tensors)
-vhgguftool -model-file model.gguf -show-all
-
-# Show tensor parameters only
-vhgguftool -model-file model.gguf -show-tensors-list
-
-# Extract a Meta Info value (e.g. the chat template, plain text)
-vhgguftool -model-file model.gguf -cmd-extract-metadata \
-    -param-meta-key tokenizer.chat_template -save-meta-file chat_template.txt
-
-# Extract a binary Meta Info value (a license link, raw value bytes)
-vhgguftool -model-file model.gguf -cmd-extract-metadata \
-    -param-meta-key general.license.link -save-meta-file meta.bin
-
-# Extract 4 layers of a tensor, starting from layer 3
-vhgguftool -model-file model.gguf -cmd-extract-tensordata \
-    -param-tensor-name blk.0.attn_norm.weight \
-    -param-tensor-laynum 3 -param-tensor-laycnt 4 \
-    -save-tensor-file dump3.bin
-
-# Extract a whole tensor
-vhgguftool -model-file model.gguf -cmd-extract-tensordata \
-    -param-tensor-name token_embd.weight -param-tensor-laycnt 0 \
-    -save-tensor-file token_embd.bin
-
-# Show command list / program version
-vhgguftool --help
-vhgguftool --version
-```
+See [`rules/usage_examples.md`](rules/usage_examples.md).
 
 ## Exit codes
 
@@ -340,17 +335,30 @@ vhgguftool/
 ├── AGENTS.md                   project notes for AI agents
 ├── models/                     GGUF test models (git-ignored symlinks) and their configs
 ├── modelsdata/                 reference dumps of model info for regression checks
+├── rules/                      usage examples (see rules/usage_examples.md)
 ├── scripts/                    helper shell scripts for manual testing
 ├── src/
-│   ├── main.cpp/.hpp           entry point, scan and command dispatch
-│   ├── cli.cpp/.hpp            CLI description and parsing (vhlibargs)
-│   ├── visual.cpp/.hpp         bit-field visualization, sign extraction helpers
-│   ├── cmd_show_signs_map.cpp  reserved experiment: 2D sign maps
+│   ├── main.cpp/.hpp           entry point; CLI parsing and CLI/GUI dispatch
 │   ├── aiplatform.hpp          common types, GGUF value type codes
 │   ├── version.h.in            version header template
 │   ├── mods/
 │   │   ├── cliparams.hpp       parsed CLI arguments structure
-│   │   ├── texttools/          hex/bf16 formatting helpers
+│   │   ├── cli/                CLI description and parsing (vhlibargs)
+│   │   ├── scan/               GGUF model scan pipeline (scan.cpp/.hpp)
+│   │   ├── cmds/
+│   │   │   ├── cmd_run_commands.cpp   display/extraction command dispatch
+│   │   │   └── cmd_show_signs_map.cpp reserved experiment: 2D sign maps
+│   │   ├── misc/
+│   │   │   └── visual.cpp/.hpp   bit-field visualization, sign extraction helpers
+│   │   ├── texttools/          hex/bf16/smart-size formatting helpers
+│   │   ├── gui/                Qt6 Widgets interface
+│   │   │   ├── wnd_main/       main window (mainwindow.cpp/.hpp)
+│   │   │   ├── wdg_statusbar/  status bar (model name, metadata/tensor counts)
+│   │   │   ├── wdg_metadata/   metadata tree widget
+│   │   │   ├── wdg_tensors/    tensors tree widget (smart block size)
+│   │   │   ├── wdg_menu/       main menu (load model, etc.)
+│   │   │   ├── wdg_vlinesep/   vertical separator
+│   │   │   └── wdg_hlinesep/   horizontal separator
 │   │   └── gguf/
 │   │       ├── vhgguf.*        GGUF container reader and dumps
 │   │       ├── vhggufmetainfo.*  metadata entry descriptor
@@ -373,6 +381,9 @@ External libraries live in `src/extmods` and are included as Git submodules
 | `vhlibargs` | command-line parser (`VHCmdLineParser`) |
 | `vhlibfsys` | binary file I/O (`VHFile`) |
 
+In addition, the GUI (`-gui`) depends on **Qt6 Widgets**, which is provided by the
+system/Qt installation and is not vendored as a submodule.
+
 The commented-out `vhlibsvg` submodule is currently not used.
 
 ## Limitations
@@ -388,8 +399,8 @@ The commented-out `vhlibsvg` submodule is currently not used.
   `-param-tensor-laynum` is not a defined layer range.
 - Only one command is executed per run; display flags can be combined with only
   one extraction command in practice.
-- `cmd_show_signs_map` / `visual.cpp` contain experimental helpers that are not
-  wired to the command line yet.
+- `src/mods/cmds/cmd_show_signs_map` / `src/mods/misc/visual` contain experimental
+  helpers that are not wired to the command line yet.
 - The built-in `--help` text for `-show-tensors-list` currently says
   "show all information in detail"; the actual behavior is documented above
   (tensor list only).

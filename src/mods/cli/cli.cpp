@@ -7,28 +7,8 @@ using namespace VHArgsParser;
 /**
  * 
  */
-static std::string GetVersionString()
+static std::vector<VHArgTypeBase> KeysList()
 {
-    return std::to_string(VHGGUFTOOL_VERSION_MAJOR) + "." +
-           std::to_string(VHGGUFTOOL_VERSION_MINOR) + "." +
-           std::to_string(VHGGUFTOOL_VERSION_PATCH);
-}
-
-/**
- * @brief Parse command line arguments.
- * @param args Output arguments.
- * @param argc Argument count.
- * @param argv Argument values.
- * @return Result code.
- */
-verr ParseCLI(CLIArgs &args, int argc, char **argv)
-{
-
-    VHCmdLineParser parser;
-    parser.setAppName("vhgguftool");
-    std::string desc = "Анализ и извлечение данных из .gguf. v" + GetVersionString();
-    parser.setAppDesc(desc);
-
     // Конфигурация ключей
     std::vector<VHArgTypeBase> keys = {
 
@@ -42,6 +22,7 @@ verr ParseCLI(CLIArgs &args, int argc, char **argv)
         VHCLIArgOpt("-show-all", false, "показать всю информацию подробно"),
 
         // Команды
+        VHCLIArgCmd("-gui", "Запустить графическую оболочку"),
         VHCLIArgCmd("-cmd-extract-metadata", "Извлечь раздел Meta Info"),
         VHCLIArgCmd("-cmd-extract-tensordata", "Извлечь слой Tensors"),
         VHCLIArgCmd("--help", "Help"),
@@ -68,15 +49,36 @@ verr ParseCLI(CLIArgs &args, int argc, char **argv)
 
     };
 
-    // Парсинг командной строки
+    return keys;
+}
+
+/**
+ * @brief Parse command line arguments.
+ * @param args Output arguments.
+ * @param argc Argument count.
+ * @param argv Argument values.
+ * @return Result code.
+ */
+verr ParseCLI(CLIArgs &args, int argc, char **argv)
+{
+
+    VHCmdLineParser parser;
+    parser.setAppName("vhgguftool");
+    std::string desc = "Анализ и извлечение данных из .gguf. v" + VHGetVersionString();
+    parser.setAppDesc(desc);
+
+
+    // *** Парсинг командной строки ***
+    std::vector<VHArgTypeBase> keys = KeysList();
     verr status = parser.ParseCommandLine(keys, argc, argv);
     if (status != vok)
         return verror(1);
 
-    
-    const std::string &cmd = parser.GetCommand();
+    // *** Разбор командной строки ***
+    args.cmd = parser.GetCommand();
 
-    if (cmd == "--help" || cmd == "--version")
+    //
+    if (args.cmd == "--help" || args.cmd == "--version")
     {
         args.cmdVersion = true;
         parser.ShowUsage(keys);
@@ -86,8 +88,14 @@ verr ParseCLI(CLIArgs &args, int argc, char **argv)
     // Извлечение значений в структуру
     args.modelFileName = parser.GetFileName("-model-file");
 
-    // Валидация обязательного параметра
-    if (args.modelFileName.empty())
+    if (args.cmd == "-gui") {
+        args.cmdGUI = true;
+        return vok;
+    }
+
+    // Валидация обязательного параметра: для GUI-режима (без CLI команды)
+    // файл модели не требуется.
+    if (!args.cmd.empty() && args.modelFileName.empty())
     {
         std::cerr << "Ошибка: не указан обязательный параметр -model-file." << std::endl;
         parser.ShowUsage(keys);
@@ -95,7 +103,6 @@ verr ParseCLI(CLIArgs &args, int argc, char **argv)
     }
 
     // Prepare CLI struct
-    args.format = parser.GetString("-format");
     args.showInfo = parser.GetOpt("-show-model-info");
     args.showMeta = parser.GetOpt("-show-metadata-list");
     args.showTensors = parser.GetOpt("-show-tensors-list");
@@ -110,7 +117,7 @@ verr ParseCLI(CLIArgs &args, int argc, char **argv)
     }
 
     // Extract Meta Info
-    if (cmd == "-cmd-extract-metadata")
+    if (args.cmd == "-cmd-extract-metadata")
     {
         args.cmdExtractMeta = true;
         args.meta_key = parser.GetString("-param-meta-key");
@@ -119,7 +126,7 @@ verr ParseCLI(CLIArgs &args, int argc, char **argv)
     }
 
     // Extract Tensor
-    if (cmd == "-cmd-extract-tensordata")
+    if (args.cmd == "-cmd-extract-tensordata")
     {
         args.cmdExtractTensor = true;
         args.tensor_name = parser.GetString("-param-tensor-name");
@@ -133,12 +140,15 @@ verr ParseCLI(CLIArgs &args, int argc, char **argv)
 
         uint8_t check = 0;
 
-        if(args.param_tensor_only_s) check++;
-        if(args.param_tensor_only_e) check++;
-        if(args.param_tensor_only_m) check++;
+        if (args.param_tensor_only_s)
+            check++;
+        if (args.param_tensor_only_e)
+            check++;
+        if (args.param_tensor_only_m)
+            check++;
 
-        if(check > 1)
-            return verrmsg(1000,"Invalid options mixed -param-tensor-only-*");
+        if (check > 1)
+            return verrmsg(1000, "Invalid options mixed -param-tensor-only-*");
 
         return vok;
     }

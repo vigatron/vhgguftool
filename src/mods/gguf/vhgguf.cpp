@@ -16,6 +16,9 @@ verr VHGGUF::ProcessHeader()
     // Header
     char magic[4];
 
+    // Reset alignment: it may be overridden by general.alignment in metadata
+    alignment = 32;
+
     if (!file.read(magic, 4))
         return verrmsg(1, "Cannot read GGUF header");
 
@@ -89,6 +92,7 @@ verr VHGGUF::ProcessMetadata()
 /** */
 verr VHGGUF::ProcessTensors()
 {
+    arrtensors.clear();
     arrtensors.reserve(static_cast<size_t>(get_tensor_count()));
 
     for (u64 i = 0; i < tensor_count; ++i)

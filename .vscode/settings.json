@@ -4,9 +4,10 @@
 
             // "--help",
             // "--version",
+            "-gui",
 
             "-model-file", "../models/Qwen3.5-0.8B-bf16.gguf",
-            // "-model-file", "../models/SmolLM2-135M-Instruct-f16.gguf"
+            // "-model-file", "../models/SmolLM2-135M-Instruct-f16.gguf",
 
             // "-model-file", "../models/Qwen2.5-3B-Instruct-Q4_K_M.gguf",
             // "-model-file", "../models/Qwen2.5-coder-3b-instruct-q8_0.gguf"
@@ -17,6 +18,7 @@
             // "-model-file", "../models/Qwen3.5-9B-Q4_K_S.gguf",
             // "-model-file", "../models/SmolLM2-135M-Instruct-Q8_0.gguf",
             // "-model-file", "../models/SmolLM2-135M-Instruct-f16.gguf",
+
 
             //
             "-show-model-info",
@@ -32,6 +34,16 @@
             // "-cmd-extract-metadata",
             // "-param-meta-key", "general.license.link",
             // "-save-meta-file", "meta.bin"
+
+            // Extract All w
+
+            // // Extract #1 - exp
+            // "-cmd-extract-tensordata",
+            // "-param-tensor-name", "blk.0.attn_qkv.weight",
+            // "-param-tensor-laynum", "0", // Starting layer
+            // "-param-tensor-laycnt", "4", // All layers
+            // "-save-tensor-file", "Qwen3.5-0.8B-bf16.blk.0.attn_qkv.weight_0_4_s.bin",
+            // "-param-tensor-only-s",
 
             // --------------
             // QWEN CODER 2.5
@@ -53,16 +65,21 @@
 
             // // *** Tensors
 
-            // // Command: Extract Tensor
-            "-cmd-extract-tensordata",
-            "-param-tensor-name", "token_embd.weight",
-            "-param-tensor-laynum", "0", // Starting layer
+            // // // Command: Extract Tensor
+            // "-cmd-extract-tensordata",
+            // "-param-tensor-name", "token_embd.weight",
+            // "-param-tensor-laynum", "0", // Starting layer
 
-            // "-param-tensor-laycnt", "1", // Single layers
-            //"-save-tensor-file", "Qwen3.5-0.8B-bf16.token_embd.weight_nr0.bin"
+            // "-param-tensor-laycnt", "1", // All layers
+            // "-save-tensor-file", "Qwen3.5-0.8B-bf16.token_embd.weight_nr0_1.bin",
 
-            "-param-tensor-laycnt", "0", // All layers
-            "-save-tensor-file", "Qwen3.5-0.8B-bf16.token_embd.weight_all.bin"
+
+            // "-param-tensor-laycnt", "0", // All layers
+            // "-save-tensor-file", "Qwen3.5-0.8B-bf16.token_embd.weight_all.bin"
+
+            // "-param-tensor-laycnt", "16", // Single layers
+            // "-save-tensor-file", "Qwen3.5-0.8B-bf16.token_embd.weight_nr0_16.bin",
+
 
 
             // "-param-tensor-only-s",
@@ -83,6 +100,7 @@
             // "-param-tensor-laynum", "0", // Starting layer
             // "-param-tensor-laycnt", "0", // All layers
             // "-save-tensor-file", "output.weight.bin"
+
 
 
         ]
