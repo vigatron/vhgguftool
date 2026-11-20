@@ -36,6 +36,16 @@ public:
     /** @brief Get the metadata value type. @return GGUF value type code. */
     u32 type() const;
 
+    /**
+     * @brief Get the human-readable name of a GGUF metadata value type.
+     * @param type GGUF value type code.
+     * @return Type name (e.g. "UINT8", "STRING"), or "UNKNOWN" for unknown codes.
+     */
+    static std::string type_name(u32 type);
+
+    /** @brief Format the metadata value as a string. @return Value string. */
+    std::string value_string() const;
+
     /** @brief Get the file offset of the entry start. @return Offset in bytes. */
     u64 file_offset() const;
 

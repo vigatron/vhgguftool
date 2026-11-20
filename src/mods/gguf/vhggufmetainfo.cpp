@@ -1,9 +1,35 @@
 #include "vhggufmetainfo.hpp"
 
 #include <cstring>
+#include <sstream>
 
 /** @brief Default constructor. */
 VHGUFFMetaInfo::VHGUFFMetaInfo() {}
+
+/**
+ * @brief Get the human-readable name of a GGUF metadata value type.
+ * @param type GGUF value type code.
+ * @return Type name (e.g. "UINT8", "STRING"), or "UNKNOWN" for unknown codes.
+ */
+std::string VHGUFFMetaInfo::type_name(u32 type)
+{
+    switch (type) {
+    case UINT8:   return "UINT8";
+    case INT8:    return "INT8";
+    case UINT16:  return "UINT16";
+    case INT16:   return "INT16";
+    case UINT32:  return "UINT32";
+    case INT32:   return "INT32";
+    case FLOAT32: return "FLOAT32";
+    case BOOL:    return "BOOL";
+    case STRING:  return "STRING";
+    case ARRAY:   return "ARRAY";
+    case UINT64:  return "UINT64";
+    case INT64:   return "INT64";
+    case FLOAT64: return "FLOAT64";
+    default:      return "UNKNOWN";
+    }
+}
 
 /** */
 verr VHGUFFMetaInfo::readmeta(VHFile &file)
@@ -111,6 +137,57 @@ verr VHGUFFMetaInfo::readmeta(VHFile &file)
     return vok;
 }
 
+/** @brief Format the metadata value as a string (same as printed by dump()). @return Value string. */
+std::string VHGUFFMetaInfo::value_string() const
+{
+    std::ostringstream oss;
+    switch (type_)
+    {
+    case UINT8:
+        oss << static_cast<int>(value_u8_);
+        break;
+    case INT8:
+        oss << static_cast<int>(value_i8_);
+        break;
+    case BOOL:
+        oss << (value_bool_ ? "true" : "false");
+        break;
+    case UINT16:
+        oss << value_u16_;
+        break;
+    case INT16:
+        oss << value_i16_;
+        break;
+    case UINT32:
+        oss << value_u32_;
+        break;
+    case INT32:
+        oss << value_i32_;
+        break;
+    case FLOAT32:
+        oss << value_f32_;
+        break;
+    case UINT64:
+        oss << value_u64_;
+        break;
+    case INT64:
+        oss << value_i64_;
+        break;
+    case FLOAT64:
+        oss << value_f64_;
+        break;
+    case STRING:
+        oss << value_str_;
+        break;
+    case ARRAY:
+        oss << "array<" << array_element_type_ << ">[" << array_count_ << "]";
+        break;
+    default:
+        oss << "*";
+    }
+    return oss.str();
+}
+
 /** */
 void VHGUFFMetaInfo::dump() const
 {
@@ -118,53 +195,7 @@ void VHGUFFMetaInfo::dump() const
     std::cout << " TYPE: " << type_;
     std::cout << " OFFSET: " << file_offset_;
     std::cout << " SIZE: " << byte_size_;
-    std::cout << " VAL: ";
-
-    switch (type_)
-    {
-    case UINT8:
-        std::cout << static_cast<int>(value_u8_);
-        break;
-    case INT8:
-        std::cout << static_cast<int>(value_i8_);
-        break;
-    case BOOL:
-        std::cout << (value_bool_ ? "true" : "false");
-        break;
-    case UINT16:
-        std::cout << value_u16_;
-        break;
-    case INT16:
-        std::cout << value_i16_;
-        break;
-    case UINT32:
-        std::cout << value_u32_;
-        break;
-    case INT32:
-        std::cout << value_i32_;
-        break;
-    case FLOAT32:
-        std::cout << value_f32_;
-        break;
-    case UINT64:
-        std::cout << value_u64_;
-        break;
-    case INT64:
-        std::cout << value_i64_;
-        break;
-    case FLOAT64:
-        std::cout << value_f64_;
-        break;
-    case STRING:
-        std::cout << value_str_;
-        break;
-    case ARRAY:
-        std::cout << "array<" << array_element_type_ << ">[" << array_count_ << "]";
-        break;
-    default:
-        std::cout << "*";
-    }
-
+    std::cout << " VAL: " << value_string();
     std::cout << "\n";
 }
 

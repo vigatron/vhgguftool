@@ -2,6 +2,10 @@
 # app build folder
 build
 
+#
+rules
+
+
 # AI Models folder
 *.gguf
 
